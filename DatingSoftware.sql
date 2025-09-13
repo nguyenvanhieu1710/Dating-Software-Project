@@ -1,10 +1,12 @@
+-- CREATE DATABASE dating_software;
+
 -- Kích hoạt extension PostGIS nếu chưa được kích hoạt
 -- Bạn cần chạy lệnh này với quyền superuser nếu chưa có
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- Dùng để tạo UUID nếu cần
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Xóa các bảng cũ nếu tồn tại để tránh lỗi khi chạy lại script
-DROP TABLE IF EXISTS messages, matches, swipes, subscriptions, consumables, profile_interests, interests, photos, settings, profiles, users CASCADE;
+DROP TABLE IF EXISTS message_reactions, messages, matches, swipes, subscriptions, consumables, profile_interests, interests, photos, settings, profiles, users CASCADE;
 DROP TYPE IF EXISTS user_status, gender, swipe_action, match_status, subscription_plan, subscription_status, preferred_gender_option;
 
 -- =================================================================
@@ -48,6 +50,7 @@ CREATE TABLE profiles (
     school VARCHAR(100),
     location GEOGRAPHY(Point, 4326), -- Quan trọng: Dùng PostGIS cho vị trí
     popularity_score REAL DEFAULT 0.0,
+    message_count INT DEFAULT 0, -- Số lượng tin nhắn đã gửi
     last_active_at TIMESTAMPTZ DEFAULT NOW(),
     is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -106,16 +109,41 @@ CREATE TABLE matches (
 COMMENT ON TABLE matches IS 'Lưu các cặp đôi đã tương hợp với nhau.';
 
 
--- 7. Bảng `messages` - Lưu trữ tin nhắn giữa các cặp đôi
+-- 7. Bảng `messages` - Lưu trữ tin nhắn giữa các cặp đôi (Enhanced Version)
 CREATE TABLE messages (
     id BIGSERIAL PRIMARY KEY,
     match_id BIGINT NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
     sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
+    message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'video', 'file', 'audio')),
     sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    read_at TIMESTAMPTZ -- NULL nếu chưa đọc
+    read_at TIMESTAMPTZ, -- NULL nếu chưa đọc
+    deleted_at TIMESTAMPTZ, -- Soft delete timestamp
+    is_pinned BOOLEAN DEFAULT FALSE,
+    pinned_at TIMESTAMPTZ,
+    
+    -- Foreign key constraints
+    CONSTRAINT fk_messages_match FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+    CONSTRAINT fk_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
-COMMENT ON TABLE messages IS 'Lưu trữ toàn bộ nội dung chat.';
+COMMENT ON TABLE messages IS 'Lưu trữ toàn bộ nội dung chat với hỗ trợ đa phương tiện và tính năng nâng cao.';
+
+-- 7.1. Bảng `message_reactions` - Lưu trữ phản ứng với tin nhắn
+CREATE TABLE message_reactions (
+    id BIGSERIAL PRIMARY KEY,
+    message_id BIGINT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reaction_type VARCHAR(20) NOT NULL CHECK (reaction_type IN ('like', 'love', 'laugh', 'wow', 'sad', 'angry')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    -- Foreign key constraints
+    CONSTRAINT fk_reactions_message FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
+    CONSTRAINT fk_reactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Unique constraint to prevent duplicate reactions
+    CONSTRAINT unique_user_message_reaction UNIQUE (message_id, user_id)
+);
+COMMENT ON TABLE message_reactions IS 'Lưu trữ các phản ứng (emoji) của người dùng với tin nhắn.';
 
 
 -- 8. Bảng `subscriptions` - Quản lý các gói đăng ký Premium
@@ -162,6 +190,21 @@ COMMENT ON INDEX idx_swipes_swiped_user_id IS 'Tăng tốc việc tìm xem ai đ
 CREATE INDEX idx_messages_match_id_sent_at ON messages (match_id, sent_at DESC);
 COMMENT ON INDEX idx_messages_match_id_sent_at IS 'Tăng tốc việc tải lịch sử chat của một cuộc hội thoại.';
 
+-- Chỉ mục nâng cao cho bảng `messages`
+CREATE INDEX idx_messages_sender ON messages (sender_id);
+CREATE INDEX idx_messages_unread ON messages (match_id, read_at IS NULL) WHERE read_at IS NULL;
+CREATE INDEX idx_messages_pinned ON messages (match_id, is_pinned) WHERE is_pinned = TRUE;
+CREATE INDEX idx_messages_type ON messages (message_type);
+CREATE INDEX idx_messages_deleted ON messages (deleted_at) WHERE deleted_at IS NULL;
+
+-- Chỉ mục cho bảng `message_reactions`
+CREATE INDEX idx_reactions_message ON message_reactions (message_id);
+CREATE INDEX idx_reactions_user ON message_reactions (user_id);
+CREATE INDEX idx_reactions_type ON message_reactions (reaction_type);
+
+-- Full-text search index cho nội dung tin nhắn
+CREATE INDEX idx_messages_content_search ON messages USING gin(to_tsvector('english', content));
+
 -- Chỉ mục cho `subscriptions` để kiểm tra trạng thái gói cước của người dùng
 CREATE INDEX idx_subscriptions_user_id_status ON subscriptions (user_id, status);
 
@@ -199,8 +242,79 @@ BEFORE UPDATE ON consumables
 FOR EACH ROW
 EXECUTE FUNCTION trigger_set_timestamp();
 
+-- =================================================================
+-- TẠO CÁC FUNCTIONS VÀ TRIGGERS CHO MESSAGE MANAGEMENT
+-- =================================================================
+
+-- Function để cập nhật thống kê tin nhắn
+CREATE OR REPLACE FUNCTION update_message_stats()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Cập nhật số lượng tin nhắn trong bảng profiles
+    IF TG_OP = 'INSERT' THEN
+        UPDATE profiles 
+        SET message_count = message_count + 1 
+        WHERE user_id = NEW.sender_id;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE profiles 
+        SET message_count = GREATEST(message_count - 1, 0) 
+        WHERE user_id = OLD.sender_id;
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger cho thống kê tin nhắn
+CREATE TRIGGER trigger_update_message_stats
+    AFTER INSERT OR DELETE ON messages
+    FOR EACH ROW
+    EXECUTE FUNCTION update_message_stats();
+
+-- Function để xử lý soft delete tin nhắn
+CREATE OR REPLACE FUNCTION soft_delete_message()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+        -- Cập nhật số lượng tin nhắn khi tin nhắn bị soft delete
+        UPDATE profiles 
+        SET message_count = GREATEST(message_count - 1, 0) 
+        WHERE user_id = OLD.sender_id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger cho soft delete
+CREATE TRIGGER trigger_soft_delete_message
+    AFTER UPDATE ON messages
+    FOR EACH ROW
+    EXECUTE FUNCTION soft_delete_message();
+
+-- =================================================================
+-- TẠO CÁC VIEWS CHO THỐNG KÊ VÀ BÁO CÁO
+-- =================================================================
+
+-- View cho thống kê tin nhắn
+CREATE VIEW message_statistics AS
+SELECT 
+    m.match_id,
+    COUNT(*) as total_messages,
+    COUNT(CASE WHEN m.sender_id = u.id THEN 1 END) as sent_messages,
+    COUNT(CASE WHEN m.sender_id != u.id THEN 1 END) as received_messages,
+    COUNT(CASE WHEN m.read_at IS NULL AND m.sender_id != u.id THEN 1 END) as unread_messages,
+    MAX(m.sent_at) as last_message_time,
+    COUNT(CASE WHEN m.is_pinned = TRUE THEN 1 END) as pinned_messages
+FROM messages m
+JOIN matches mt ON m.match_id = mt.id
+JOIN users u ON (mt.user1_id = u.id OR mt.user2_id = u.id)
+WHERE m.deleted_at IS NULL
+GROUP BY m.match_id, u.id;
+
+COMMENT ON VIEW message_statistics IS 'View cung cấp thống kê chi tiết về tin nhắn trong các cuộc hội thoại.';
 
 -- =================================================================
 -- SCRIPT HOÀN TẤT
 -- =================================================================
-SELECT 'Database schema created successfully!' AS status;
+SELECT 'Database schema created successfully with enhanced messaging features!' AS status;

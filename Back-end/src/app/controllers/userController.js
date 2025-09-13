@@ -1,6 +1,7 @@
 const BaseController = require("./BaseController");
 const UserModel = require("../models/UserModel");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 class UserController extends BaseController {
   constructor() {
@@ -21,6 +22,43 @@ class UserController extends BaseController {
       });
     } catch (error) {
       this.handleError(res, error, "Failed to retrieve users with profiles");
+    }
+  }
+
+  /**
+   * Lấy thông tin user hiện tại (từ token)
+   */
+  async getCurrentUser(req, res) {
+    try {
+      // Lấy userId từ JWT token (được set bởi auth middleware)
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const user = await this.model.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Không trả về password_hash
+      const { password_hash, ...userData } = user;
+
+      res.json({
+        success: true,
+        data: userData,
+        message: "Current user retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get current user");
     }
   }
 
@@ -283,6 +321,153 @@ class UserController extends BaseController {
   }
 
   /**
+   * User login
+   */
+  async login(req, res) {
+    try {
+      this.validateRequiredFields(req, ["email", "password"]);
+
+      const { email, password } = req.body;
+
+      const user = await this.model.findByEmailForLogin(email);
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
+      if (!isValidPassword) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: user.id, 
+          email: user.email,
+          status: user.status 
+        },
+        process.env.JWT_SECRET || "your-secret-key",
+        { expiresIn: "7d" }
+      );
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone_number: user.phone_number,
+            status: user.status
+          },
+          token
+        },
+        message: "Login successful",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to login");
+    }
+  }
+
+  /**
+   * User registration
+   */
+  async register(req, res) {
+    try {
+      this.validateRequiredFields(req, [
+        "email", "password", "phone_number"
+      ]);
+
+      const { email, password, phone_number } = req.body;
+
+      // Check if user already exists
+      const existingUser = await this.model.findByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "User with this email already exists",
+        });
+      }
+
+      // Hash password
+      const password_hash = await bcrypt.hash(password, 10);
+
+      // Create user
+      const userData = {
+        email,
+        phone_number,
+        password_hash,
+        status: "unverified"
+      };
+
+      const user = await this.model.create(userData);
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: user.id, 
+          email: user.email,
+          status: user.status 
+        },
+        process.env.JWT_SECRET || "your-secret-key",
+        { expiresIn: "7d" }
+      );
+
+      res.status(201).json({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone_number: user.phone_number,
+            status: user.status
+          },
+          token
+        },
+        message: "Registration successful",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to register");
+    }
+  }
+
+  /**
+   * Verify user account
+   */
+  async verifyAccount(req, res) {
+    try {
+      const { userId } = req.params;
+      this.validateId(userId);
+
+      const user = await this.model.update(userId, {
+        status: "active"
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: user,
+        message: "Account verified successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to verify account");
+    }
+  }
+
+  /**
    * Reset password
    */
   async resetPassword(req, res) {
@@ -315,6 +500,53 @@ class UserController extends BaseController {
       });
     } catch (error) {
       this.handleError(res, error, "Failed to reset password");
+    }
+  }
+
+  /**
+   * Change password
+   */
+  async changePassword(req, res) {
+    try {
+      const { userId } = req.params;
+      this.validateId(userId);
+
+      this.validateRequiredFields(req, ["currentPassword", "newPassword"]);
+
+      const { currentPassword, newPassword } = req.body;
+
+      const user = await this.model.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!isValidPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+      }
+
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      const updatedUser = await this.model.update(userId, {
+        password_hash: newPasswordHash
+      });
+
+      res.json({
+        success: true,
+        data: updatedUser,
+        message: "Password changed successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to change password");
     }
   }
 }

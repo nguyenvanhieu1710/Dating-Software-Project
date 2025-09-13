@@ -1,19 +1,43 @@
 const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
+const http = require("http");
 const routes = require("./routes/index");
-const dotenv = require("dotenv");
+
+// Import core modules
+const {
+  setupMiddleware,
+  setupHealthCheck,
+  setupErrorHandler,
+  ServiceManager,
+  setupGracefulShutdown,
+  startServer,
+} = require("./core");
+
+// Import environment config
+const env = require("./config/environment");
+
 const app = express();
-const path = require("path");
+const server = http.createServer(app);
 
-dotenv.config();
+// Setup middleware
+setupMiddleware(app, env);
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Setup health check
+setupHealthCheck(app, null, env); // socketManager will be set later
+
+// API routes
 app.use("/api", routes);
 
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
-});
+// Setup error handler
+setupErrorHandler(app);
+
+// Initialize service manager
+const serviceManager = new ServiceManager(server);
+
+// Setup graceful shutdown
+setupGracefulShutdown(server, serviceManager);
+
+// Start server
+startServer(server, env, serviceManager);
+
+// Export for testing
+module.exports = { app, server, serviceManager };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 
@@ -21,60 +21,68 @@ export default function RegisterScreen() {
         }
         // Giả lập đăng ký thành công
         Alert.alert('Thành công', 'Đăng ký thành công!');
-        router.replace('login');
+        router.replace('/login');
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Đăng ký tài khoản</Text>
-            <Text style={styles.label}>Tên của bạn</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Nhập tên"
-                value={name}
-                onChangeText={setName}
-            />
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Nhập email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-            />
-            <Text style={styles.label}>Mật khẩu</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Nhập mật khẩu"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
-            <Text style={styles.label}>Xác nhận mật khẩu</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Nhập lại mật khẩu"
-                secureTextEntry
-                value={confirm}
-                onChangeText={setConfirm}
-            />
-            <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                <Text style={styles.buttonText}>Đăng ký</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.linkButton} onPress={() => router.replace('login')}>
-                <Text style={styles.linkButtonText}>Đã có tài khoản? Đăng nhập</Text>
-            </TouchableOpacity>
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+            <StatusBar barStyle="dark-content" backgroundColor={Colors.light.background} />
+            <View style={styles.container}>
+                <Text style={styles.title}>Đăng ký tài khoản</Text>
+                <Text style={styles.label}>Tên của bạn</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Nhập tên"
+                    value={name}
+                    onChangeText={setName}
+                />
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Nhập email"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                />
+                <Text style={styles.label}>Mật khẩu</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Nhập mật khẩu"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <Text style={styles.label}>Xác nhận mật khẩu</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Nhập lại mật khẩu"
+                    secureTextEntry
+                    value={confirm}
+                    onChangeText={setConfirm}
+                />
+                <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                    <Text style={styles.buttonText}>Đăng ký</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.linkButton} onPress={() => router.replace('/login')}>
+                    <Text style={styles.linkButtonText}>Đã có tài khoản? Đăng nhập</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: Colors.light.background,
+    },
     container: {
         flex: 1,
         backgroundColor: Colors.light.background,
         justifyContent: 'center',
         padding: 24,
+        paddingTop: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 0) + 24,
     },
     title: {
         fontSize: 28,

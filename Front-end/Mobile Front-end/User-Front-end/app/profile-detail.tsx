@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
+import { useRouter } from 'expo-router';
 
 const USER = {
     name: 'Linh',
@@ -15,77 +17,238 @@ const USER = {
 };
 
 export default function ProfileDetailScreen() {
+    const router = useRouter();
+    const handleHome = () => {
+        router.push('/');
+    };
     return (
-        <ScrollView style={styles.container}>
-            <FlatList
-                data={USER.photos}
-                horizontal
-                keyExtractor={(_, i) => i.toString()}
-                renderItem={({ item }) => (
-                    <Image source={{ uri: item }} style={styles.photo} />
-                )}
-                style={styles.photoList}
-                showsHorizontalScrollIndicator={false}
-            />
-            <View style={styles.infoBox}>
-                <Text style={styles.name}>{USER.name}, {USER.age}</Text>
-                <Text style={styles.bio}>{USER.bio}</Text>
-                <View style={styles.hobbyGroup}>
-                    {USER.hobbies.map(hobby => (
-                        <View key={hobby} style={styles.hobbyBadge}>
-                            <Text style={styles.hobbyText}>{hobby}</Text>
+        <SafeAreaView style={styles.safeArea}>
+            <StatusBar barStyle="dark-content" backgroundColor="#FFF9FB" />
+            <View style={{ flex: 1 }}>
+                <ScrollView style={styles.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <View>
+                            <Text style={styles.name}>{USER.name}, {USER.age}</Text>
                         </View>
-                    ))}
-                </View>
-                <View style={styles.actions}>
-                    <TouchableOpacity style={[styles.actionBtn, styles.pass]}>
-                        <Text style={styles.actionIcon}>❌</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, styles.superlike]}>
-                        <Text style={styles.actionIcon}>⭐</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, styles.like]}>
-                        <Text style={styles.actionIcon}>❤️</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity onPress={handleHome}>
+                            <Ionicons name="arrow-down" size={24} color="#6D28D9" />
+                        </TouchableOpacity>
+                    </View>
+                    {/* Photo */}
+                    <View style={styles.photoContainer}>
+                        <Image source={{ uri: USER.photos[0] }} style={styles.photo} />
+                        {/* Photo Progress Indicator */}
+                        <View style={styles.photoProgressContainer}>
+                            {USER.photos.map((_, index) => (
+                                <View
+                                    key={index}
+                                    style={[
+                                        styles.photoProgressBar,
+                                        index === 0 && styles.photoProgressActive
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                    </View>
+                    {/* Info Box */}
+                    <View style={styles.infoBox}>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>About me</Text>
+                            <Text style={styles.aboutMe}>{USER.bio}</Text>
+                        </View>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Hobbies</Text>
+                            <View style={styles.hobbyGroup}>
+                                {USER.hobbies.map((hobby, index) => (
+                                    <View key={index} style={styles.tag}>
+                                        <Text style={styles.tagText}>{hobby}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Details</Text>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailLabel}>Age</Text>
+                                <Text style={styles.detailValue}>{USER.age}</Text>
+                            </View>
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailLabel}>Name</Text>
+                                <Text style={styles.detailValue}>{USER.name}</Text>
+                            </View>
+                        </View>
+                    </View>
+                </ScrollView>
+
+                {/* Fixed Action Buttons */}
+                <View style={styles.actionsContainer}>
+                    <View style={styles.actions}>
+                        <TouchableOpacity style={[styles.actionBtn, styles.pass]}>
+                            <Ionicons name="close" size={28} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.actionBtn, styles.superlike]}>
+                            <Ionicons name="star" size={28} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.actionBtn, styles.like]}>
+                            <Ionicons name="heart" size={28} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
-        </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#FFF9FB',
+    },
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
-    photoList: {
-        minHeight: 320,
-        maxHeight: 320,
-        marginBottom: 12,
-    },
-    photo: {
-        width: 260,
-        height: 320,
-        borderRadius: 24,
-        marginRight: 16,
-        backgroundColor: Colors.light.card,
-    },
-    infoBox: {
-        padding: 24,
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#FFF',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
     },
     name: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: Colors.light.primary,
+        color: '#6D28D9',
         marginBottom: 8,
         textAlign: 'center',
     },
-    bio: {
+    photoContainer: {
+        height: 400,
+        position: 'relative',
+    },
+    photo: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    photoProgressContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        position: 'absolute',
+        bottom: 20,
+        left: 0,
+        right: 0,
+        zIndex: 2,
+    },
+    photoProgressBar: {
+        height: 4,
+        width: 24,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        marginHorizontal: 2,
+        borderRadius: 2,
+    },
+    photoProgressActive: {
+        backgroundColor: '#FFF',
+    },
+    infoBox: {
+        padding: 20,
+        backgroundColor: '#FFF',
+        margin: 16,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    section: {
+        marginBottom: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3E8FF',
+        paddingBottom: 16,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#6D28D9',
+        marginBottom: 12,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    sectionContent: {
         fontSize: 15,
-        color: Colors.light.text,
+        color: '#4B5563',
+        lineHeight: 22,
+    },
+    tag: {
+        backgroundColor: '#F3E8FF',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        marginRight: 8,
+        marginBottom: 8,
+    },
+    tagText: {
+        color: '#6D28D9',
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    actionsContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#FFF',
+        padding: 16,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 10,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 16,
+    },
+    actions: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    actionBtn: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 12,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    pass: {
+        backgroundColor: '#FF6B6B',
+    },
+    superlike: {
+        backgroundColor: '#4CC9F0',
+    },
+    like: {
+        backgroundColor: '#7C3AED',
+    },
+    aboutMe: {
+        fontSize: 15,
+        color: '#4B5563',
+        lineHeight: 22,
         marginBottom: 16,
-        textAlign: 'center',
     },
     hobbyGroup: {
         flexDirection: 'row',
@@ -94,43 +257,21 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         justifyContent: 'center',
     },
-    hobbyBadge: {
-        backgroundColor: Colors.light.accent,
-        borderRadius: 16,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        marginBottom: 8,
-    },
-    hobbyText: {
-        color: Colors.light.primary,
-        fontWeight: '600',
-        fontSize: 14,
-    },
-    actions: {
+    detailRow: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 16,
-        marginTop: 8,
+        justifyContent: 'space-between',
+        marginBottom: 12,
     },
-    actionBtn: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.light.accent,
-        elevation: 2,
+    detailLabel: {
+        color: '#6B7280',
+        fontSize: 14,
+        width: '40%',
     },
-    actionIcon: {
-        fontSize: 28,
+    detailValue: {
+        color: '#1F2937',
+        fontSize: 14,
+        fontWeight: '500',
+        width: '55%',
+        textAlign: 'right',
     },
-    pass: {
-        backgroundColor: '#F3E8FF',
-    },
-    superlike: {
-        backgroundColor: '#C4B5FD',
-    },
-    like: {
-        backgroundColor: '#7C3AED',
-    },
-}); 
+});

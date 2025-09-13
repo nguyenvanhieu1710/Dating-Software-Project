@@ -3,8 +3,8 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-const tintColorLight = '#7C3AED'; // Violet (modern, khác Tinder)
-const tintColorDark = '#C4B5FD'; // Light violet for dark mode
+const tintColorLight = '#8B5CF6'; // Màu tím thống nhất
+const tintColorDark = '#A78BFA'; // Light violet for dark mode
 
 export const Colors = {
   light: {
@@ -14,9 +14,9 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
-    primary: '#7C3AED',
-    secondary: '#C4B5FD',
-    accent: '#F3E8FF',
+    primary: '#8B5CF6', // Màu tím thống nhất
+    secondary: '#A78BFA', // Light violet
+    accent: '#F3E8FF', // Light purple background
     success: '#10B981',
     warning: '#F59E0B',
     error: '#EF4444',
@@ -30,8 +30,8 @@ export const Colors = {
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
-    primary: '#C4B5FD',
-    secondary: '#7C3AED',
+    primary: '#A78BFA', // Light violet for dark mode
+    secondary: '#8B5CF6', // Màu tím thống nhất
     accent: '#2D1B69',
     success: '#34D399',
     warning: '#FBBF24',

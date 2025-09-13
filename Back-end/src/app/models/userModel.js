@@ -20,13 +20,25 @@ class UserModel extends BaseModel {
   }
 
   /**
-   * Lấy user theo email
+   * Lấy user theo email (không bao gồm password_hash)
    */
   async findByEmail(email) {
     const sql = `
             SELECT u.id, u.email, u.phone_number, u.status, u.created_at, u.updated_at, p.*
             FROM users u
             LEFT JOIN profiles p ON u.id = p.user_id
+            WHERE u.email = $1
+        `;
+    return await DatabaseHelper.getOne(sql, [email]);
+  }
+
+  /**
+   * Lấy user theo email cho login (bao gồm password_hash)
+   */
+  async findByEmailForLogin(email) {
+    const sql = `
+            SELECT u.id, u.email, u.phone_number, u.password_hash, u.status, u.created_at, u.updated_at
+            FROM users u
             WHERE u.email = $1
         `;
     return await DatabaseHelper.getOne(sql, [email]);

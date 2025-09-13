@@ -1,0 +1,2162 @@
+{
+    "info": {
+        "name": "Dating Software API Collection",
+        "description": "Complete API testing collection for Dating Software Backend",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "Base_URL",
+            "value": "http://localhost:5001/api",
+            "type": "string"
+        },
+        {
+            "key": "Token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "User_ID",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "User_ID_2",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "Match_ID",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "🔐 Authentication",
+            "item": [
+                {
+                    "name": "Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"phone_number\": \"+1234567890\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/user/register",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user",
+                                "register"
+                            ]
+                        },
+                        "description": "Register a new user account with email and phone number. This endpoint creates a new user account and returns authentication token for immediate login.\n\n**Required fields:**\n- email: Valid email address (must be unique)\n- password: Strong password (min 8 characters)\n- phone_number: Valid phone number with country code\n\n**Validation:**\n- Email format validation\n- Password strength requirements\n- Phone number format validation\n- Duplicate email/phone checking\n\n**Returns:**\n- User account details\n- Authentication token\n- Account status\n\n**Use case:** New user registration, account creation, onboarding flow"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    if (response.data && response.data.token) {",
+                                    "        pm.environment.set('Token', response.data.token);",
+                                    "        pm.environment.set('User_ID', response.data.user.id);",
+                                    "        console.log('Token saved:', response.data.token);",
+                                    "    }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/user/login",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user",
+                                "login"
+                            ]
+                        },
+                        "description": "Authenticate user with email and password. This endpoint validates user credentials and returns authentication token for API access.\n\n**Required fields:**\n- email: User's registered email address\n- password: User's password\n\n**Security features:**\n- Password hashing verification\n- Rate limiting protection\n- Account lockout after failed attempts\n- Token expiration management\n\n**Returns:**\n- Authentication token (Bearer token)\n- User profile information\n- Account status and permissions\n- Token expiration time\n\n**Auto-saves:**\n- Token to {{Token}} variable\n- User ID to {{User_ID}} variable\n\n**Use case:** User login, authentication, session management"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "👤 User Management",
+            "item": [
+                {
+                    "name": "Get All Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/user",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Users with Profiles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/user/with-profiles",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user",
+                                "with-profiles"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Current User",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/user/me",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"updated@example.com\",\n  \"phone_number\": \"+9876543210\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/user/me",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update User Account",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"newemail@example.com\",\n  \"phone_number\": \"+1234567890\",\n  \"status\": \"active\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/user/me",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "user",
+                                "me"
+                            ]
+                        },
+                        "description": "Update user account information (email, phone number, status). This endpoint updates the user's basic account details, not their dating profile. Use this for account management and verification purposes.\n\n**Fields that can be updated:**\n- email: New email address\n- phone_number: New phone number\n- status: Account status (active, suspended, etc.)\n\n**Use case:** Account settings, email/phone verification, account management"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📸 Photo Management",
+            "item": [
+                {
+                    "name": "Upload Single Photo",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "{{User_ID}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "photo_type",
+                                    "value": "profile",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/upload/single",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "upload",
+                                "single"
+                            ]
+                        },
+                        "description": "Upload a single photo for user profile. This endpoint handles profile pictures, cover photos, and other single image uploads with automatic resizing and optimization.\n\n**Supported formats:** JPG, PNG, WebP\n**Max file size:** 10MB\n**Auto-processing:** Resize, compress, generate thumbnails\n\n**Parameters:**\n- file: Image file to upload\n- user_id: ID of the user uploading the photo\n- photo_type: Type of photo (profile, cover, gallery)\n\n**Use case:** Profile picture upload, single photo gallery addition"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Upload Multiple Photos",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "files",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "{{User_ID}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "photo_type",
+                                    "value": "gallery",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/upload/multiple",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "upload",
+                                "multiple"
+                            ]
+                        },
+                        "description": "Upload multiple photos at once for user gallery. This endpoint efficiently handles batch photo uploads with progress tracking and automatic processing.\n\n**Supported formats:** JPG, PNG, WebP\n**Max files:** 10 photos per request\n**Max file size:** 10MB per photo\n**Auto-processing:** Resize, compress, generate thumbnails, set order\n\n**Parameters:**\n- files: Array of image files to upload\n- user_id: ID of the user uploading photos\n- photo_type: Type of photos (gallery, album)\n\n**Use case:** Bulk photo gallery upload, album creation, profile photo batch update"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "👤 Profile Management",
+            "item": [
+                {
+                    "name": "Create Profile",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"user_id\": {{User_ID}},\n  \"first_name\": \"Nguyen\",\n  \"dob\": \"2000-01-01\",\n  \"gender\": \"male\",\n  \"bio\": \"I love traveling and meeting new people\",\n  \"job_title\": \"Software Engineer\",\n  \"school\": \"MIT\",\n  \"location\": {\n    \"latitude\": 10.762622,\n    \"longitude\": 106.660172,\n    \"city\": \"Ho Chi Minh City\"\n  },\n  \"height\": 175,\n  \"weight\": 70,\n  \"education\": \"Bachelor's Degree\",\n  \"interests\": [\"travel\", \"music\", \"sports\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/profile",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get complete profile information for a user including photos. Returns detailed profile data with all photos attached."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"first_name\": \"John Updated\",\n  \"last_name\": \"Doe Updated\",\n  \"bio\": \"This is my updated bio\",\n  \"job_title\": \"Senior Developer\",\n  \"school\": \"MIT\",\n  \"location\": {\n    \"latitude\": 10.762622,\n    \"longitude\": 106.660172,\n    \"city\": \"Ho Chi Minh City\"\n  },\n  \"height\": 175,\n  \"weight\": 70,\n  \"education\": \"Bachelor's Degree\",\n  \"interests\": [\"travel\", \"music\", \"sports\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Update profile information. All fields are optional - only provided fields will be updated. Supports partial updates."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Profiles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/search?minAge=18&maxAge=30&gender=female&maxDistance=50&latitude=10.762622&longitude=106.660172&limit=20&offset=0",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "minAge",
+                                    "value": "18",
+                                    "description": "Minimum age filter"
+                                },
+                                {
+                                    "key": "maxAge",
+                                    "value": "30",
+                                    "description": "Maximum age filter"
+                                },
+                                {
+                                    "key": "gender",
+                                    "value": "female",
+                                    "description": "Gender filter (male/female/other)"
+                                },
+                                {
+                                    "key": "preferredGender",
+                                    "value": "male",
+                                    "description": "Preferred gender filter"
+                                },
+                                {
+                                    "key": "maxDistance",
+                                    "value": "50",
+                                    "description": "Maximum distance in kilometers"
+                                },
+                                {
+                                    "key": "latitude",
+                                    "value": "10.762622",
+                                    "description": "User's latitude for distance calculation"
+                                },
+                                {
+                                    "key": "longitude",
+                                    "value": "106.660172",
+                                    "description": "User's longitude for distance calculation"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20",
+                                    "description": "Number of results per page (default: 20)"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "0",
+                                    "description": "Number of results to skip for pagination"
+                                }
+                            ]
+                        },
+                        "description": "Search profiles with advanced filters. Supports age range, gender, distance, and pagination. Perfect for discovery features."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Potential Matches",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}/potential-matches?limit=20",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}",
+                                "potential-matches"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "20",
+                                    "description": "Number of potential matches to return (default: 20)"
+                                }
+                            ]
+                        },
+                        "description": "Get potential matches (people you haven't swiped on yet). Returns profiles with photos for the swipe interface."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Last Active",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}/last-active",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}",
+                                "last-active"
+                            ]
+                        },
+                        "description": "Update user's last active timestamp. Should be called when user opens the app or becomes active."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Calculate Popularity Score",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}/popularity",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}",
+                                "popularity"
+                            ]
+                        },
+                        "description": "Calculate and update user's popularity score based on likes, matches, and activity. Used for ranking in discovery."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Profile Completion Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}/completion",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}",
+                                "completion"
+                            ]
+                        },
+                        "description": "Get profile completion percentage and missing fields. Helps guide users to complete their profiles."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Validate Profile",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"first_name\": \"John\",\n  \"dob\": \"2000-01-01\",\n  \"gender\": \"male\",\n  \"bio\": \"I love traveling\",\n  \"location\": {\n    \"latitude\": 10.762622,\n    \"longitude\": 106.660172,\n    \"city\": \"Ho Chi Minh City\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/validate",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "validate"
+                            ]
+                        },
+                        "description": "Validate profile data before saving. Returns validation errors and suggestions for improvement."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Profile Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/profile/by-user/{{User_ID}}/stats",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "by-user",
+                                "{{User_ID}}",
+                                "stats"
+                            ]
+                        },
+                        "description": "Get profile statistics including view count, like count, match rate, and other engagement metrics."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get User Photos",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/photo/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "photo",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get all photos for a specific user including profile pictures and gallery photos. Returns photos with metadata like order, type, and upload date.\n\n**Returns:**\n- Array of photo objects\n- Photo URLs (original and thumbnails)\n- Photo metadata (order, type, upload date)\n- Photo dimensions and file info\n\n**Use case:** Display user's photo gallery, profile photo carousel, photo management"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💕 Swipe System",
+            "item": [
+                {
+                    "name": "Get All Swipes",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe/all?page=1&limit=20&swiper_user_id={{User_ID}}&action=like",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe",
+                                "all"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1",
+                                    "description": "Page number (default: 1)"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20",
+                                    "description": "Items per page (1-100, default: 20)"
+                                },
+                                {
+                                    "key": "swiper_user_id",
+                                    "value": "{{User_ID}}",
+                                    "description": "Filter by user who performed the swipe (optional)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "swiped_user_id",
+                                    "value": "{{User_ID_2}}",
+                                    "description": "Filter by user who was swiped on (optional)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "like",
+                                    "description": "Filter by action: 'like', 'superlike', or 'pass' (optional)",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Get all swipes with pagination and filtering. Returns detailed information about each swipe including user details.\n\n**Example Usage:**\n- Get all swipes: `GET /swipe/all`\n- Get second page with 10 items: `GET /swipe/all?page=2&limit=10`\n- Filter by user who swiped: `GET /swipe/all?swiper_user_id=123`\n- Filter by action: `GET /swipe/all?action=like`\n- Combine filters: `GET /swipe/all?swiper_user_id=123&action=like&page=1&limit=10`"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Swipe Right (Like)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"swiper_user_id\": {{User_ID}},\n  \"swiped_user_id\": {{User_ID_2}},\n  \"action\": \"like\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Swipe Left (Pass)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"swiper_user_id\": {{User_ID}},\n  \"swiped_user_id\": {{User_ID_2}},\n  \"action\": \"pass\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Swipe History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe/by-user/{{User_ID}}/swiped",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe",
+                                "by-user",
+                                "{{User_ID}}",
+                                "swiped"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Users Who Swiped Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe/by-user/{{User_ID}}/swiped-by",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe",
+                                "by-user",
+                                "{{User_ID}}",
+                                "swiped-by"
+                            ]
+                        },
+                        "description": "Get all users who have swiped on you (liked, passed, or superliked). Returns detailed information about each user including their profile data and photos."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Users Who Liked Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe/by-user/{{User_ID}}/swiped-by?action=like",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe",
+                                "by-user",
+                                "{{User_ID}}",
+                                "swiped-by"
+                            ],
+                            "query": [
+                                {
+                                    "key": "action",
+                                    "value": "like",
+                                    "description": "Filter to show only users who liked you"
+                                }
+                            ]
+                        },
+                        "description": "Get only users who have liked you (swiped right). This is useful for seeing who is interested in you."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Users Who Superliked Me",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/swipe/by-user/{{User_ID}}/swiped-by?action=superlike",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "swipe",
+                                "by-user",
+                                "{{User_ID}}",
+                                "swiped-by"
+                            ],
+                            "query": [
+                                {
+                                    "key": "action",
+                                    "value": "superlike",
+                                    "description": "Filter to show only users who superliked you"
+                                }
+                            ]
+                        },
+                        "description": "Get only users who have superliked you. Superlikes indicate high interest from other users."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💬 Match System",
+            "item": [
+                {
+                    "name": "Get All My Matches",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get all your matches (people you've matched with). Returns detailed information about each match including:\n- Match details (ID, creation date, status)\n- Other user's profile (name, age, gender, bio, photo)\n- Message count and last message timestamp\n- Sorted by most recent matches first\n\n**Use case:** Display your matches list in the app"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Match Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/{{Match_ID}}/user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "{{Match_ID}}",
+                                "user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get detailed information about a specific match including match metadata, other user's profile, and conversation summary. This endpoint provides comprehensive match details for the chat interface.\n\n**Returns:**\n- Match information (ID, creation date, status)\n- Other user's complete profile\n- Last message preview\n- Unread message count\n- Match statistics\n\n**Use case:** Opening a chat conversation, displaying match details in the chat header"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Match Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/by-user/{{User_ID}}/stats",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "by-user",
+                                "{{User_ID}}",
+                                "stats"
+                            ]
+                        },
+                        "description": "Get match statistics for a user including:\n- Total matches count\n- Matches this week (last 7 days)\n- Matches this month (last 30 days)\n- Only counts active matches\n\n**Use case:** Display match statistics in user dashboard or profile"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💬 Messaging",
+            "item": [
+                {
+                    "name": "Send Message",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"content\": \"Hello! How are you?\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/match/{{Match_ID}}/user/{{User_ID}}/messages",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "{{Match_ID}}",
+                                "user",
+                                "{{User_ID}}",
+                                "messages"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Messages",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/{{Match_ID}}/user/{{User_ID}}/messages?limit=50&offset=0",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "{{Match_ID}}",
+                                "user",
+                                "{{User_ID}}",
+                                "messages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "50",
+                                    "description": "Number of messages to return (default: 50)"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "0",
+                                    "description": "Number of messages to skip for pagination"
+                                }
+                            ]
+                        },
+                        "description": "Get messages for a specific match with pagination. Automatically marks messages as read when retrieved."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Last Messages",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/message/last-messages",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "message",
+                                "last-messages"
+                            ]
+                        },
+                        "description": "Get the last message from each match for the current user. Perfect for displaying conversation previews in the matches list."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Unread Count",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/message/unread-count",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "message",
+                                "unread-count"
+                            ]
+                        },
+                        "description": "Get unread message counts for all matches. Returns total unread count and per-match breakdown."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark Messages as Read",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/{{Match_ID}}/user/{{User_ID}}/messages/read",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "{{Match_ID}}",
+                                "user",
+                                "{{User_ID}}",
+                                "messages",
+                                "read"
+                            ]
+                        },
+                        "description": "Mark all messages in a match as read for the current user. Should be called when user opens the chat."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark Single Message as Read",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/message/{{Message_ID}}/read",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "message",
+                                "{{Message_ID}}",
+                                "read"
+                            ]
+                        },
+                        "description": "Mark a specific message as read. Useful for read receipts or individual message tracking."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Message",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/message/{{Message_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "message",
+                                "{{Message_ID}}"
+                            ]
+                        },
+                        "description": "Delete a message. Only the sender can delete their own messages. Broadcasts deletion to other users in the match."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Messages",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/{{Match_ID}}/messages/search?keyword=hello",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "{{Match_ID}}",
+                                "messages",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "keyword",
+                                    "value": "hello",
+                                    "description": "Search keyword to find in message content"
+                                }
+                            ]
+                        },
+                        "description": "Search for messages within a specific match. Returns messages containing the keyword with highlighting."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Message Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/message/stats",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "message",
+                                "stats"
+                            ]
+                        },
+                        "description": "Get messaging statistics for the current user including total messages sent, received, response rate, and activity metrics."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Send Typing Indicator",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"match_id\": {{Match_ID}},\n  \"is_typing\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/message/typing",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "message",
+                                "typing"
+                            ]
+                        },
+                        "description": "Send typing indicator to other user in the match. Use WebSocket for real-time implementation, but this endpoint can be used for fallback."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Message History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/match/{{Match_ID}}/messages/history?startDate=2024-01-01&endDate=2024-12-31&limit=100",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "match",
+                                "{{Match_ID}}",
+                                "messages",
+                                "history"
+                            ],
+                            "query": [
+                                {
+                                    "key": "startDate",
+                                    "value": "2024-01-01",
+                                    "description": "Start date for message history (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "2024-12-31",
+                                    "description": "End date for message history (YYYY-MM-DD)"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "100",
+                                    "description": "Maximum number of messages to return"
+                                }
+                            ]
+                        },
+                        "description": "Get message history for a specific date range. Useful for chat backup, export, or historical analysis."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "⚙️ Settings",
+            "item": [
+                {
+                    "name": "Create Settings",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"notifications\": {\n    \"matches\": true,\n    \"messages\": true,\n    \"likes\": true,\n    \"superlikes\": true\n  },\n  \"privacy\": {\n    \"showOnlineStatus\": true,\n    \"showLastSeen\": false,\n    \"showDistance\": true\n  },\n  \"discovery\": {\n    \"ageRange\": {\n      \"min\": 18,\n      \"max\": 35\n    },\n    \"maxDistance\": 50,\n    \"preferredGender\": \"female\",\n    \"isDiscoverable\": true\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings"
+                            ]
+                        },
+                        "description": "Create new user settings with complete configuration. This endpoint automatically uses the authenticated user's ID from the JWT token, so you don't need to provide user_id in the request body.\n\n**Settings categories:**\n- notifications: Push notification preferences for matches, messages, likes, superlikes\n- privacy: Profile visibility settings (online status, last seen, distance)\n- discovery: Matching and search preferences (age range, distance, gender, discoverability)\n\n**Authentication:** Requires valid JWT token in Authorization header\n**Auto-assignment:** user_id is automatically set from JWT token\n\n**Use case:** First-time user setup, complete settings initialization, onboarding flow"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Settings",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get user's complete settings including preferences, privacy settings, and discovery options. Returns all configuration data for the user's dating experience.\n\n**Returns:**\n- Discovery settings (age range, distance, gender preferences)\n- Privacy settings (show online status, last seen)\n- Notification preferences\n- Account preferences\n\n**Use case:** Load user settings page, initialize app with user preferences"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Settings",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"notifications\": {\n    \"matches\": true,\n    \"messages\": true,\n    \"likes\": true,\n    \"superlikes\": true\n  },\n  \"privacy\": {\n    \"showOnlineStatus\": true,\n    \"showLastSeen\": false,\n    \"showDistance\": true\n  },\n  \"discovery\": {\n    \"ageRange\": {\n      \"min\": 18,\n      \"max\": 35\n    },\n    \"maxDistance\": 50,\n    \"preferredGender\": \"female\",\n    \"isDiscoverable\": true\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Update user's complete settings. This endpoint allows updating all settings at once including notifications, privacy, and discovery preferences.\n\n**Settings categories:**\n- notifications: Push notification preferences\n- privacy: Profile visibility settings\n- discovery: Matching and search preferences\n\n**Use case:** Save settings from settings page, bulk settings update"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Upsert Settings",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"notifications\": {\n    \"matches\": true,\n    \"messages\": true\n  },\n  \"discovery\": {\n    \"maxDistance\": 25,\n    \"preferredGender\": \"male\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}/upsert",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}",
+                                "upsert"
+                            ]
+                        },
+                        "description": "Create or update user settings (upsert operation). This endpoint will create settings if they don't exist, or update existing settings. Perfect for first-time setup or partial updates.\n\n**Behavior:**\n- Creates new settings if user has none\n- Updates existing settings if they exist\n- Merges partial updates with existing settings\n\n**Use case:** First-time user setup, partial settings updates, onboarding flow"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Discoverable Status",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"is_discoverable\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}/discoverable",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}",
+                                "discoverable"
+                            ]
+                        },
+                        "description": "Update user's discoverable status. Controls whether the user appears in other users' discovery feed and can be found through search.\n\n**Parameters:**\n- is_discoverable: Boolean - true to appear in discovery, false to hide\n\n**Use case:** Privacy toggle, temporary profile hiding, account suspension"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Search Distance",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"max_distance_km\": 25\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}/distance",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}",
+                                "distance"
+                            ]
+                        },
+                        "description": "Update maximum search distance for finding matches. Controls how far away users can be to appear in discovery feed.\n\n**Parameters:**\n- max_distance_km: Number - Maximum distance in kilometers (1-100)\n\n**Use case:** Location-based matching preferences, travel mode settings"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Age Range",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"min_age\": 21,\n  \"max_age\": 30\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}/age-range",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}",
+                                "age-range"
+                            ]
+                        },
+                        "description": "Update preferred age range for finding matches. Controls the age range of users that will appear in discovery feed.\n\n**Parameters:**\n- min_age: Number - Minimum age (18-99)\n- max_age: Number - Maximum age (18-99)\n\n**Validation:**\n- min_age must be >= 18\n- max_age must be <= 99\n- min_age must be <= max_age\n\n**Use case:** Age preference settings, demographic filtering"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Preferred Gender",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"preferred_gender\": \"female\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/settings/by-user/{{User_ID}}/preferred-gender",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "settings",
+                                "by-user",
+                                "{{User_ID}}",
+                                "preferred-gender"
+                            ]
+                        },
+                        "description": "Update preferred gender for finding matches. Controls which gender of users will appear in discovery feed.\n\n**Parameters:**\n- preferred_gender: String - \"male\", \"female\", \"other\", or \"all\"\n\n**Options:**\n- \"male\": Show only male users\n- \"female\": Show only female users\n- \"other\": Show only non-binary users\n- \"all\": Show all genders\n\n**Use case:** Gender preference settings, sexual orientation preferences"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💎 Subscription",
+            "item": [
+                {
+                    "name": "Create Subscription",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"plan\": \"premium\",\n  \"duration\": \"monthly\",\n  \"paymentMethod\": \"credit_card\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/subscription",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "subscription"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Current Subscription",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/subscription/by-user/{{User_ID}}/current",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "subscription",
+                                "by-user",
+                                "{{User_ID}}",
+                                "current"
+                            ]
+                        },
+                        "description": "Get user's current active subscription details including plan type, expiration date, and features. Returns null if user has no active subscription.\n\n**Returns:**\n- Plan details (type, duration, price)\n- Subscription status (active, expired, cancelled)\n- Expiration date and renewal info\n- Available features and limits\n\n**Use case:** Check premium status, display subscription info, feature access control"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Subscriptions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/subscription/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "subscription",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get all subscription history for a user including past and current subscriptions. Useful for subscription management and billing history.\n\n**Returns:**\n- Array of all subscriptions (current and past)\n- Subscription details (plan, dates, status)\n- Payment history and billing info\n- Cancellation and renewal records\n\n**Use case:** Subscription management page, billing history, customer support"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Available Plans",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/subscription/plans",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "subscription",
+                                "plans"
+                            ]
+                        },
+                        "description": "Get all available subscription plans with pricing and features. This endpoint shows what plans users can subscribe to.\n\n**Returns:**\n- Available subscription plans\n- Pricing for each plan (monthly/yearly)\n- Features included in each plan\n- Special offers and discounts\n\n**Use case:** Subscription selection page, pricing display, plan comparison"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancel Subscription",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"reason\": \"Too expensive\",\n  \"feedback\": \"Would like cheaper options\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/subscription/{{Subscription_ID}}/cancel",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "subscription",
+                                "{{Subscription_ID}}",
+                                "cancel"
+                            ]
+                        },
+                        "description": "Cancel an active subscription. The subscription will remain active until the current billing period ends.\n\n**Parameters:**\n- reason: Cancellation reason (optional)\n- feedback: User feedback (optional)\n\n**Behavior:**\n- Subscription remains active until period end\n- No refund for current period\n- User loses premium features after expiration\n\n**Use case:** Subscription cancellation, user retention, feedback collection"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🎁 Consumables",
+            "item": [
+                {
+                    "name": "Use Super Like",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"targetUserId\": {{User_ID_2}},\n  \"message\": \"You're amazing! Super like!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/consumable/super-like",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "consumable",
+                                "super-like"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Use Boost",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"duration\": 30\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/consumable/boost",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "consumable",
+                                "boost"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Consumables",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/consumable/by-user/{{User_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "consumable",
+                                "by-user",
+                                "{{User_ID}}"
+                            ]
+                        },
+                        "description": "Get user's current consumable inventory including super likes, boosts, and other premium items. Shows available quantities and expiration dates.\n\n**Returns:**\n- Super likes count and reset time\n- Boost count and duration\n- Other consumables (rewind, spotlight, etc.)\n- Purchase history and expiration dates\n\n**Use case:** Display consumable inventory, check available items, manage premium features"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Purchase Consumables",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"items\": [\n    {\n      \"type\": \"super_like\",\n      \"quantity\": 5,\n      \"price\": 2.99\n    },\n    {\n      \"type\": \"boost\",\n      \"quantity\": 1,\n      \"price\": 1.99\n    }\n  ],\n  \"payment_method\": \"credit_card\",\n  \"total_amount\": 4.98\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/consumable/purchase",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "consumable",
+                                "purchase"
+                            ]
+                        },
+                        "description": "Purchase consumable items like super likes, boosts, and other premium features. Supports multiple items in a single purchase.\n\n**Parameters:**\n- items: Array of items to purchase with type, quantity, and price\n- payment_method: Payment method (credit_card, apple_pay, google_pay)\n- total_amount: Total purchase amount\n\n**Use case:** In-app purchases, premium feature access, micro-transactions"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Use Rewind",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"target_user_id\": {{User_ID_2}}\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/consumable/rewind",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "consumable",
+                                "rewind"
+                            ]
+                        },
+                        "description": "Use rewind to undo the last swipe action. Allows users to take back a pass or like decision.\n\n**Parameters:**\n- target_user_id: ID of the user to rewind the swipe for\n\n**Behavior:**\n- Removes the last swipe action\n- User can swipe again on that profile\n- Consumes one rewind from inventory\n\n**Use case:** Undo accidental swipes, second chances, user retention"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Use Spotlight",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"duration\": 30\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/consumable/spotlight",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "consumable",
+                                "spotlight"
+                            ]
+                        },
+                        "description": "Use spotlight to make your profile more visible in other users' discovery feed. Increases profile views and potential matches.\n\n**Parameters:**\n- duration: Spotlight duration in minutes (15, 30, 60)\n\n**Effects:**\n- Profile appears more frequently in discovery\n- Higher position in other users' feeds\n- Increased visibility and potential matches\n\n**Use case:** Profile promotion, increased visibility, match boosting"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "📤 File Upload",
+            "item": [
+                {
+                    "name": "Upload Document",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "{{User_ID}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "document_type",
+                                    "value": "verification",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "ID verification document",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/upload/file",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "upload",
+                                "file"
+                            ]
+                        },
+                        "description": "Upload documents and non-image files for verification, reports, or other purposes. This endpoint handles PDFs, documents, and other file types with security scanning and validation.\n\n**Supported formats:** PDF, DOC, DOCX, TXT\n**Max file size:** 25MB\n**Security:** Virus scanning, content validation\n\n**Parameters:**\n- file: Document file to upload\n- user_id: ID of the user uploading the document\n- document_type: Type of document (verification, report, other)\n- description: Description of the document\n\n**Use case:** ID verification, document submission, report uploads, file sharing"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Photo",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/photo/{{Photo_ID}}",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "photo",
+                                "{{Photo_ID}}"
+                            ]
+                        },
+                        "description": "Delete a specific photo from user's profile. Only the photo owner can delete their own photos.\n\n**Parameters:**\n- Photo_ID: ID of the photo to delete\n\n**Behavior:**\n- Removes photo from database\n- Deletes file from server storage\n- Updates photo order for remaining photos\n- Cannot delete if it's the only photo\n\n**Use case:** Photo management, profile cleanup, privacy control"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Photo Order",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"photo_orders\": [\n    {\n      \"photo_id\": 1,\n      \"order\": 1\n    },\n    {\n      \"photo_id\": 2,\n      \"order\": 2\n    },\n    {\n      \"photo_id\": 3,\n      \"order\": 3\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/photo/order",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "photo",
+                                "order"
+                            ]
+                        },
+                        "description": "Update the display order of photos in user's profile. The first photo (order 1) becomes the primary profile picture.\n\n**Parameters:**\n- photo_orders: Array of photo IDs with their new order positions\n\n**Behavior:**\n- Updates display order of photos\n- First photo becomes primary profile picture\n- Order affects how photos appear in profile\n\n**Use case:** Photo reordering, profile customization, primary photo selection"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Set Primary Photo",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{Base_URL}}/photo/{{Photo_ID}}/primary",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "photo",
+                                "{{Photo_ID}}",
+                                "primary"
+                            ]
+                        },
+                        "description": "Set a specific photo as the primary profile picture. This photo will be displayed first and used as the main profile image.\n\n**Parameters:**\n- Photo_ID: ID of the photo to set as primary\n\n**Behavior:**\n- Sets photo as primary profile picture\n- Updates photo order (moves to position 1)\n- Other photos maintain relative order\n\n**Use case:** Quick primary photo change, profile picture selection"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Upload Video",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{Token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "user_id",
+                                    "value": "{{User_ID}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "video_type",
+                                    "value": "profile_intro",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "description",
+                                    "value": "Profile introduction video",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{Base_URL}}/upload/video",
+                            "host": [
+                                "{{Base_URL}}"
+                            ],
+                            "path": [
+                                "upload",
+                                "video"
+                            ]
+                        },
+                        "description": "Upload video files for profile introductions, voice messages, or other video content. Supports video compression and format conversion.\n\n**Supported formats:** MP4, MOV, AVI, WebM\n**Max file size:** 100MB\n**Max duration:** 60 seconds\n**Auto-processing:** Compression, format conversion, thumbnail generation\n\n**Parameters:**\n- file: Video file to upload\n- user_id: ID of the user uploading the video\n- video_type: Type of video (profile_intro, voice_message, other)\n- description: Description of the video content\n\n**Use case:** Profile video introductions, voice messages, video sharing"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🔍 System",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:5001/health",
+                            "protocol": "http",
+                            "host": [
+                                "localhost"
+                            ],
+                            "port": "5001",
+                            "path": [
+                                "health"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

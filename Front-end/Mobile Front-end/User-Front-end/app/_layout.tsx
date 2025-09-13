@@ -24,16 +24,15 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="otp" options={{ headerShown: false }} />
-        <Stack.Screen name="profile-photos" options={{ headerShown: false }} />
-        <Stack.Screen name="profile-basic" options={{ headerShown: false }} />
-        <Stack.Screen name="profile-extra" options={{ headerShown: false }} />
-        <Stack.Screen name="permissions" options={{ headerShown: false }} />
         <Stack.Screen name="profile-detail" options={{ headerShown: false }} />
         <Stack.Screen name="match" options={{ headerShown: false }} />
         <Stack.Screen name="chat" options={{ headerShown: false }} />
+        <Stack.Screen name="friends" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
-        <Stack.Screen name="paywall" options={{ headerShown: false }} />
+        <Stack.Screen name="explore-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+        <Stack.Screen name="safety-center" options={{ headerShown: false }} />
+        <Stack.Screen name="subscriptions" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
