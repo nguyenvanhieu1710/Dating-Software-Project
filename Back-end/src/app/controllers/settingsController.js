@@ -7,6 +7,22 @@ class SettingsController extends BaseController {
   }
 
   /**
+   * Get all setting of user
+   */
+  async getAllSettings(req, res){
+    try {
+      const settings = await this.model.getAllSettings();
+      res.json({
+        success: true,
+        data: settings,
+        message: "Settings retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get settings");
+    }
+  }
+
+  /**
    * Lấy settings của user
    */
   async getSettingsByUserId(req, res) {
@@ -94,149 +110,109 @@ class SettingsController extends BaseController {
   }
 
   /**
-   * Tạo hoặc cập nhật settings
+   * Cập nhật ngôn ngữ
    */
-  async upsertSettings(req, res) {
+  async updateLanguage(req, res) {
     try {
       const { userId } = req.params;
       this.validateId(userId);
-
-      const settings = await this.model.upsertSettings(userId, req.body);
-
+  
+      this.validateRequiredFields(req, ["language"]);
+  
+      const settings = await this.model.updateSettings(userId, {
+        language: req.body.language
+      });
+  
       res.json({
         success: true,
         data: settings,
-        message: "Settings saved successfully",
+        message: "Language updated successfully",
       });
     } catch (error) {
-      this.handleError(res, error, "Failed to save settings");
+      this.handleError(res, error, "Failed to update language");
     }
-  }
+  }  
 
   /**
-   * Cập nhật discoverable status
+   * Cập nhật theme
    */
-  async updateDiscoverableStatus(req, res) {
+  async updateTheme(req, res) {
     try {
       const { userId } = req.params;
       this.validateId(userId);
-
-      this.validateRequiredFields(req, ["is_discoverable"]);
-
+  
+      this.validateRequiredFields(req, ["theme"]);
+  
       const settings = await this.model.updateSettings(userId, {
-        is_discoverable: req.body.is_discoverable
+        theme: req.body.theme
       });
-
-      if (!settings) {
-        return res.status(404).json({
-          success: false,
-          message: "Settings not found",
-        });
-      }
-
+  
       res.json({
         success: true,
         data: settings,
-        message: "Discoverable status updated successfully",
+        message: "Theme updated successfully",
       });
     } catch (error) {
-      this.handleError(res, error, "Failed to update discoverable status");
+      this.handleError(res, error, "Failed to update theme");
     }
   }
-
+  
   /**
-   * Cập nhật khoảng cách tìm kiếm
+   * Cập nhật thông báo
    */
-  async updateSearchDistance(req, res) {
+  async updateNotifications(req, res) {
     try {
       const { userId } = req.params;
       this.validateId(userId);
-
-      this.validateRequiredFields(req, ["max_distance_km"]);
-
-      const settings = await this.model.updateSettings(userId, {
-        max_distance_km: req.body.max_distance_km
-      });
-
-      if (!settings) {
-        return res.status(404).json({
-          success: false,
-          message: "Settings not found",
-        });
+  
+      const allowedFields = [
+        "new_matches_notification",
+        "new_messages_notification",
+        "message_likes_notification",
+        "message_super_likes_notification",
+        "profile_views_notification",
+        "email_notifications",
+        "push_notifications",
+        "promotional_emails"
+      ];
+  
+      const updateData = {};
+      for (const field of allowedFields) {
+        if (field in req.body) updateData[field] = req.body[field];
       }
-
+  
+      const settings = await this.model.updateSettings(userId, updateData);
+  
       res.json({
         success: true,
         data: settings,
-        message: "Search distance updated successfully",
+        message: "Notifications updated successfully",
       });
     } catch (error) {
-      this.handleError(res, error, "Failed to update search distance");
+      this.handleError(res, error, "Failed to update notifications");
     }
   }
-
+  
   /**
-   * Cập nhật độ tuổi tìm kiếm
+   * Reset settings về mặc định
    */
-  async updateAgeRange(req, res) {
+  async resetSettings(req, res) {
     try {
       const { userId } = req.params;
       this.validateId(userId);
-
-      this.validateRequiredFields(req, ["min_age", "max_age"]);
-
-      const settings = await this.model.updateSettings(userId, {
-        min_age: req.body.min_age,
-        max_age: req.body.max_age
-      });
-
-      if (!settings) {
-        return res.status(404).json({
-          success: false,
-          message: "Settings not found",
-        });
-      }
-
+  
+      const settings = await this.model.resetToDefault(userId);
+  
       res.json({
         success: true,
         data: settings,
-        message: "Age range updated successfully",
+        message: "Settings reset to default successfully",
       });
     } catch (error) {
-      this.handleError(res, error, "Failed to update age range");
+      this.handleError(res, error, "Failed to reset settings");
     }
   }
-
-  /**
-   * Cập nhật giới tính ưa thích
-   */
-  async updatePreferredGender(req, res) {
-    try {
-      const { userId } = req.params;
-      this.validateId(userId);
-
-      this.validateRequiredFields(req, ["preferred_gender"]);
-
-      const settings = await this.model.updateSettings(userId, {
-        preferred_gender: req.body.preferred_gender
-      });
-
-      if (!settings) {
-        return res.status(404).json({
-          success: false,
-          message: "Settings not found",
-        });
-      }
-
-      res.json({
-        success: true,
-        data: settings,
-        message: "Preferred gender updated successfully",
-      });
-    } catch (error) {
-      this.handleError(res, error, "Failed to update preferred gender");
-    }
-  }
+  
 }
 
 module.exports = SettingsController; 

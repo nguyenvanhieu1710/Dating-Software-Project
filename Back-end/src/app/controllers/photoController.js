@@ -31,6 +31,7 @@ class PhotoController extends BaseController {
    */
   async addPhoto(req, res) {
     try {
+      console.log("Body: ", req.body);
       this.validateRequiredFields(req, [
         "user_id", "url"
       ]);
@@ -112,21 +113,37 @@ class PhotoController extends BaseController {
       if (photo.url) {
         const fs = require('fs');
         const path = require('path');
-        
+
         try {
-          // Extract file path from URL (remove domain/base URL if present)
-          let filePath = photo.url;
-          if (filePath.includes('/uploads/')) {
-            filePath = filePath.substring(filePath.indexOf('/uploads/'));
+          let filePath = String(photo.url);
+
+          // If URL-like (has protocol), extract pathname
+          try {
+            const maybeUrl = new URL(filePath);
+            filePath = maybeUrl.pathname || filePath;
+          } catch (_) {
+            // Not a full URL; continue
           }
-          
-          // Construct full file path
-          const fullPath = path.join(__dirname, '../../../..', filePath);
-          
-          // Check if file exists and delete it
+
+          // If contains '/uploads/', trim everything before it
+          const uploadsMarker = '/uploads/';
+          const idx = filePath.indexOf(uploadsMarker);
+          if (idx >= 0) {
+            filePath = filePath.substring(idx + uploadsMarker.length);
+          }
+
+          // Normalize slashes and remove any leading slashes or backslashes
+          filePath = filePath.replace(/^[\\/]+/, '');
+
+          // Resolve to absolute path inside the project's uploads directory
+          const uploadsDir = path.join(__dirname, '../../../uploads');
+          const fullPath = path.join(uploadsDir, filePath);
+
           if (fs.existsSync(fullPath)) {
             fs.unlinkSync(fullPath);
             console.log(`Deleted file: ${fullPath}`);
+          } else {
+            console.warn('File not found for deletion:', fullPath);
           }
         } catch (fileError) {
           console.error('Error deleting file:', fileError);

@@ -1,13 +1,14 @@
 import httpClient from './httpClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Message interface matching backend response
+export type MessageType = 'text' | 'image' | 'video' | 'file' | 'audio';
+
 export interface MessageData {
   id: number;
   match_id: number;
   sender_id: number;
   content: string;
-  message_type: string;
+  message_type: MessageType;
   sent_at: string;
   read_at: string | null;
   deleted_at: string | null;
@@ -17,20 +18,26 @@ export interface MessageData {
   dob: string;
   gender: string;
   message_direction: 'sent' | 'received';
+  sender?: {
+    id: number;
+    first_name: string;
+    avatar_url?: string;
+  };
 }
 
-// Conversation summary interface
 export interface ConversationSummary {
   match_id: number;
   other_user_id: number;
   other_user_name: string;
-  other_user_dob: string;
-  other_user_gender: string;
-  last_message: MessageData;
-  unread_count?: number;
+  other_user_avatar?: string;
+  last_message: {
+    content: string;
+    sent_at: string;
+    is_read: boolean;
+  };
+  unread_count: number;
 }
 
-// Helper function to get current user ID
 const getCurrentUserId = async (): Promise<number | null> => {
   try {
     const userId = await AsyncStorage.getItem('userId');
@@ -44,122 +51,143 @@ const getCurrentUserId = async (): Promise<number | null> => {
   }
 };
 
-// Get messages for a specific match
-export const getMessagesByMatchId = async (
-  matchId: number, 
-  limit: number = 50, 
-  offset: number = 0
-): Promise<MessageData[]> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
+const getAuthHeaders = async () => {
+  const token = await AsyncStorage.getItem('auth_token');
+  // console.log('Token from AsyncStorage:', token);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
-    const response = await httpClient.get(`/match/${matchId}/by-user/${userId}/messages`, {
-      params: { limit, offset }
-    });
-    
-    if (response.data.success && Array.isArray(response.data.data)) {
+// Message API service
+export const messageApi = {
+  /**
+   * Get messages for a specific match
+   */
+  getByMatchId: async (matchId: number, limit: number = 50, offset: number = 0): Promise<MessageData[]> => {
+    try {
+      // const auth = await getAuthHeaders();
+      // console.log("auth: ", auth);
+      const response = await httpClient.get(`/message/match/${matchId}`, {
+        params: { limit, offset },
+        headers: await getAuthHeaders()
+      });
+      return response.data.data || [];
+    } catch (error) {
+      console.error(`Error fetching messages for match ${matchId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send a new message
+   */
+  send: async (matchId: number, content: string, messageType: MessageType = 'text'): Promise<MessageData> => {
+    try {
+      const response = await httpClient.post(
+        '/message/send',
+        { match_id: matchId, content, message_type: messageType },
+        { headers: await getAuthHeaders() }
+      );
       return response.data.data;
-    } else {
-      console.warn('Unexpected messages response format:', response.data);
-      return [];
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
     }
-  } catch (error) {
-    console.error(`Error fetching messages for match ${matchId}:`, error);
-    return [];
+  },
+
+  /**
+   * Mark a message as read
+   */
+  markAsRead: async (messageId: number): Promise<void> => {
+    try {
+      await httpClient.put(
+        `/message/${messageId}/read`,
+        {},
+        { headers: await getAuthHeaders() }
+      );
+    } catch (error) {
+      console.error('Error marking message as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Mark all messages in a match as read
+   */
+  markAllAsRead: async (matchId: number): Promise<void> => {
+    try {
+      await httpClient.put(
+        `/message/match/${matchId}/read`,
+        {},
+        { headers: await getAuthHeaders() }
+      );
+    } catch (error) {
+      console.error('Error marking all messages as read:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get last messages from all conversations
+   */
+  getLastMessages: async (): Promise<ConversationSummary[]> => {
+    try {
+      const response = await httpClient.get('/message/last-messages', {
+        headers: await getAuthHeaders()
+      });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching last messages:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get unread message counts
+   */
+  getUnreadCounts: async (): Promise<{match_id: number, unread_count: number}[]> => {
+    try {
+      const response = await httpClient.get('/message/unread-count', {
+        headers: await getAuthHeaders()
+      });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching unread counts:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a message
+   */
+  delete: async (messageId: number): Promise<void> => {
+    try {
+      await httpClient.delete(`/message/${messageId}`, {
+        headers: await getAuthHeaders()
+      });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Search messages in a match
+   */
+  search: async (matchId: number, query: string): Promise<MessageData[]> => {
+    try {
+      const response = await httpClient.get(`/message/match/${matchId}/search`, {
+        params: { q: query },
+        headers: await getAuthHeaders()
+      });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error searching messages:', error);
+      throw error;
+    }
   }
 };
 
-// Send a new message
-export const sendMessage = async (matchId: number, content: string): Promise<MessageData | null> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
-
-    const response = await httpClient.post(`/match/${matchId}/by-user/${userId}/messages`, {
-      content
-    });
-    
-    if (response.data.success && response.data.data) {
-      return response.data.data;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error sending message:', error);
-    throw error;
-  }
-};
-
-// Mark messages as read
-export const markMessagesAsRead = async (matchId: number): Promise<boolean> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
-
-    const response = await httpClient.put(`/match/${matchId}/by-user/${userId}/messages/read`);
-    
-    return response.data.success;
-  } catch (error) {
-    console.error('Error marking messages as read:', error);
-    return false;
-  }
-};
-
-// Get last messages for all conversations (for messages list screen)
-export const getLastMessages = async (): Promise<ConversationSummary[]> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
-
-    // This would use the getLastMessagesByUserId method from backend
-    // For now, we'll get matches and their last messages through the match API
-    const response = await httpClient.get(`/match/by-user/${userId}`);
-    
-    if (response.data.success && Array.isArray(response.data.data)) {
-      // Filter matches that have messages and convert to conversation summaries
-      const conversations: ConversationSummary[] = response.data.data
-        .filter((match: any) => match.message_count > 0)
-        .map((match: any) => ({
-          match_id: match.id,
-          other_user_id: match.other_user_id,
-          other_user_name: match.first_name,
-          other_user_dob: match.dob,
-          other_user_gender: match.gender,
-          last_message: {
-            id: 0, // We don't have the actual last message details here
-            match_id: match.id,
-            sender_id: 0,
-            content: 'Tap to view conversation', // Placeholder
-            message_type: 'text',
-            sent_at: match.last_message_at || new Date().toISOString(),
-            read_at: null,
-            deleted_at: null,
-            first_name: match.first_name,
-            dob: match.dob,
-            gender: match.gender,
-            message_direction: 'received' as const
-          }
-        }));
-
-      return conversations;
-    } else {
-      console.warn('Unexpected conversations response format:', response.data);
-      return [];
-    }
-  } catch (error) {
-    console.error('Error fetching last messages:', error);
-    return [];
-  }
-};
+export default messageApi;
 
 // Get unread message count for current user
 export const getUnreadMessageCount = async (): Promise<number> => {

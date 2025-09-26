@@ -1,34 +1,71 @@
 const express = require("express");
-const UserController = require("../app/controllers/UserController");
+const UserController = require("../app/controllers/userController");
 const { authenticateToken } = require("../app/middlewares/authMiddleware");
 const userController = new UserController();
 
 const router = express.Router();
 
 // Specific routes (phải đặt trước parameter routes)
-router.get("/me", authenticateToken, (req, res) => userController.getCurrentUser(req, res));
-router.get("/with-profiles", (req, res) =>
-  userController.getAllWithProfiles(req, res)
+// api đề xuất dựa trên tất cả tiêu chí trong profile
+router.get("/recommend", authenticateToken, (req, res) => {
+  userController.getRecommendUsers(req, res);
+});
+router.get("/me", authenticateToken, (req, res) =>
+  userController.getCurrentUser(req, res)
 );
-router.get("/by-email/:email", (req, res) => userController.findByEmail(req, res));
-
-// Authentication routes
-router.post("/login", (req, res) => userController.login(req, res));
-router.post("/register", (req, res) => userController.register(req, res));
-router.post("/reset-password", (req, res) => userController.resetPassword(req, res));
-
-// CRUD routes
-router.get("/", (req, res) => userController.getAll(req, res));
-router.post("/", (req, res) => userController.create(req, res));
-router.post("/with-profile", (req, res) =>
-  userController.createWithProfile(req, res)
+router.get("/search", authenticateToken, (req, res) =>
+  userController.searchUsers(req, res)
 );
-
-// Parameter routes (phải đặt sau specific routes)
-router.get("/:id", (req, res) => userController.getById(req, res));
-router.put("/:id", (req, res) => userController.update(req, res));
-router.delete("/:id", (req, res) => userController.delete(req, res));
-router.put("/:userId/verify", (req, res) => userController.verifyAccount(req, res));
-router.put("/:userId/change-password", (req, res) => userController.changePassword(req, res));
+// Verification routes
+// admin xem danh sách verification
+router.get("/verifications", authenticateToken, (req, res) =>
+  userController.getVerifications(req, res)
+);
+router.get("/verifications/:id", authenticateToken, (req, res) =>
+  userController.getVerificationsById(req, res)
+);
+router.get("/verifications/:user_id", authenticateToken, (req, res) =>
+  userController.getVerificationsByUserId(req, res)
+);
+// admin xác minh và không xác minh
+router.put("/verifications/:id", authenticateToken, (req, res) =>
+  userController.updateVerifications(req, res)
+);
+// Block routes
+// 1 người block 1 người
+router.post("/blocks", authenticateToken, (req, res) =>
+  userController.blockUser(req, res)
+);
+// 1 người unblock 1 người
+router.delete("/blocks/:blocked_id", authenticateToken, (req, res) =>
+  userController.unblockUser(req, res)
+);
+// Device of user Routes
+// Đăng ký thiết bị mới (khi login)
+router.post("/devices", authenticateToken, (req, res) =>
+  userController.registerDevice(req, res)
+);
+// Lấy danh sách thiết bị của mình
+router.get("/devices", authenticateToken, (req, res) =>
+  userController.getMyDevices(req, res)
+);
+// Cập nhật thông tin thiết bị
+router.put("/devices/:device_id", authenticateToken, (req, res) =>
+  userController.updateDevice(req, res)
+);
+// lấy danh sách user theo interest
+router.get("/interests", authenticateToken, (req, res) =>
+  userController.getUsersByInterest(req, res)
+);
+// lấy danh sách user theo goal
+router.get("/goals", authenticateToken, (req, res) =>
+  userController.getUsersByGoal(req, res)
+);
+// CRUD routes with profile
+router.get("/", (req, res) => userController.getAllWithProfiles(req, res));
+router.get("/:id", (req, res) => userController.getByIdWithProfile(req, res));
+router.post("/", (req, res) => userController.createWithProfile(req, res));
+router.put("/:id", (req, res) => userController.updateWithProfile(req, res));
+router.delete("/:id", (req, res) => userController.deleteWithProfile(req, res));
 
 module.exports = router;

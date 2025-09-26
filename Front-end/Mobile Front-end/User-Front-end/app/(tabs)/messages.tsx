@@ -5,148 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { getMatches, Match } from '@/services/matchApi';
 
-// Mock data as fallback - matching Match interface
-const MOCK_MATCHES: Match[] = [
-    {
-        id: 1,
-        user1_id: 1,
-        user2_id: 2,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        other_user_id: 2,
-        first_name: 'Linh',
-        dob: '1995-01-01',
-        gender: 'female',
-        bio: 'Mock user',
-        job_title: 'Designer',
-        school: 'University',
-        photo_url: null,
-        message_count: 0,
-        last_message_at: null,
-        name: 'Linh',
-        age: 28,
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-        timeAgo: 'No messages'
-    },
-    {
-        id: 2,
-        user1_id: 1,
-        user2_id: 3,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        other_user_id: 3,
-        first_name: 'Ha',
-        dob: '1996-01-01',
-        gender: 'female',
-        bio: 'Mock user',
-        job_title: 'Developer',
-        school: 'University',
-        photo_url: null,
-        message_count: 0,
-        last_message_at: null,
-        name: 'Ha',
-        age: 27,
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop',
-        timeAgo: 'No messages'
-    },
-    {
-        id: 3,
-        user1_id: 1,
-        user2_id: 4,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        other_user_id: 4,
-        first_name: 'Minh',
-        dob: '1994-01-01',
-        gender: 'male',
-        bio: 'Mock user',
-        job_title: 'Engineer',
-        school: 'University',
-        photo_url: null,
-        message_count: 0,
-        last_message_at: null,
-        name: 'Minh',
-        age: 29,
-        avatar: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=100&h=100&fit=crop',
-        timeAgo: 'No messages'
-    }
-];
-
-const MOCK_CHATS: Match[] = [
-    {
-        id: 1,
-        user1_id: 1,
-        user2_id: 2,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        other_user_id: 2,
-        first_name: 'Linh',
-        dob: '1995-01-01',
-        gender: 'female',
-        bio: 'Mock user',
-        job_title: 'Designer',
-        school: 'University',
-        photo_url: null,
-        message_count: 5,
-        last_message_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        name: 'Linh',
-        age: 28,
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-        lastMessage: 'Hi there!',
-        timeAgo: '2 mins ago'
-    },
-    {
-        id: 2,
-        user1_id: 1,
-        user2_id: 3,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        other_user_id: 3,
-        first_name: 'Ha',
-        dob: '1996-01-01',
-        gender: 'female',
-        bio: 'Mock user',
-        job_title: 'Developer',
-        school: 'University',
-        photo_url: null,
-        message_count: 3,
-        last_message_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        name: 'Ha',
-        age: 27,
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop',
-        lastMessage: 'See you this weekend!',
-        timeAgo: '1 hour ago'
-    },
-    {
-        id: 3,
-        user1_id: 1,
-        user2_id: 4,
-        status: 'active',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        other_user_id: 4,
-        first_name: 'Minh',
-        dob: '1994-01-01',
-        gender: 'male',
-        bio: 'Mock user',
-        job_title: 'Engineer',
-        school: 'University',
-        photo_url: null,
-        message_count: 2,
-        last_message_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-        name: 'Minh',
-        age: 29,
-        avatar: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=100&h=100&fit=crop',
-        lastMessage: 'What kind of music do you like?',
-        timeAgo: '3 hours ago'
-    }
-];
-
 export default function MessagesScreen() {
     const router = useRouter();
     const [matches, setMatches] = useState<Match[]>([]);
@@ -171,9 +29,6 @@ export default function MessagesScreen() {
             } catch (err) {
                 console.error('Error fetching matches and conversations:', err);
                 setError('Failed to load conversations. Please try again.');
-                // Use mock data as fallback
-                setMatches(MOCK_MATCHES);
-                setConversations(MOCK_CHATS);
             } finally {
                 setIsLoading(false);
             }
@@ -236,7 +91,7 @@ export default function MessagesScreen() {
                                 <FlatList
                                     data={matches}
                                     horizontal
-                                    keyExtractor={item => item.id.toString()}
+                                    keyExtractor={item => `${Math.min(item.user1_id, item.user2_id)}-${Math.max(item.user1_id, item.user2_id)}`}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity style={styles.matchBox} onPress={() => handleMatchPress(item.id)}>
                                             <Image source={{ uri: item.avatar || `https://picsum.photos/100/100?random=${item.id}` }} style={styles.matchAvatar} />
@@ -268,7 +123,7 @@ export default function MessagesScreen() {
                             ) : conversations.length > 0 ? (
                                 <FlatList
                                     data={conversations}
-                                    keyExtractor={item => item.id.toString()}
+                                    keyExtractor={item => `${Math.min(item.user1_id, item.user2_id)}-${Math.max(item.user1_id, item.user2_id)}`}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity key={item.id} style={styles.chatItem} onPress={() => handleMatchPress(item.id)}>
                                             <Image source={{ uri: item.avatar || `https://picsum.photos/100/100?random=${item.id}` }} style={styles.chatAvatar} />

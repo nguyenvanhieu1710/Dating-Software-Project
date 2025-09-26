@@ -29,7 +29,9 @@ interface PhotoApiResponse {
 // Get all photos for a specific user
 export const getPhotosByUserId = async (userId: number): Promise<Photo[]> => {
   try {
+    // console.log('Fetching photos for user:', userId);
     const response = await httpClient.get<PhotoApiResponse>(`/photo/by-user/${userId}`);
+    // console.log('Photo response:', response.data.data);
     
     if (response.data.success && Array.isArray(response.data.data)) {
       // Sort photos by order_index to ensure correct display order

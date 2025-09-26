@@ -7,6 +7,43 @@ class SubscriptionController extends BaseController {
   }
 
   /**
+   * Getl all subscriptions
+   */
+  async getAllSubscriptions(req, res){
+    try {      
+      const subscriptions = await this.model.getAllSubscriptions();
+
+      res.json({
+        success: true,
+        data: subscriptions,
+        message: "Subscriptions retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get subscriptions");
+    }
+  }
+
+  /**
+   * get subscription by id
+   */
+  async getSubscriptionById(req, res){
+    try {
+      const { subscriptionId } = req.params;
+      this.validateId(subscriptionId);
+
+      const subscription = await this.model.getSubscriptionById(subscriptionId);
+
+      res.json({
+        success: true,
+        data: subscription,
+        message: "Subscription retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get subscription");
+    }
+  }
+
+  /**
    * Lấy subscription hiện tại của user
    */
   async getCurrentSubscription(req, res) {
@@ -51,10 +88,6 @@ class SubscriptionController extends BaseController {
    */
   async createSubscription(req, res) {
     try {
-      this.validateRequiredFields(req, [
-        "user_id", "plan_type", "start_date", "end_date"
-      ]);
-
       const subscription = await this.model.createSubscription(req.body);
 
       res.status(201).json({
@@ -68,34 +101,22 @@ class SubscriptionController extends BaseController {
   }
 
   /**
-   * Cập nhật trạng thái subscription
+   * update subscription
    */
-  async updateSubscriptionStatus(req, res) {
+  async updateSubscription(req, res){
     try {
       const { subscriptionId } = req.params;
       this.validateId(subscriptionId);
 
-      this.validateRequiredFields(req, ["status"]);
-
-      const subscription = await this.model.updateSubscriptionStatus(
-        subscriptionId, 
-        req.body.status
-      );
-
-      if (!subscription) {
-        return res.status(404).json({
-          success: false,
-          message: "Subscription not found",
-        });
-      }
+      const subscription = await this.model.updateSubscription(subscriptionId, req.body);
 
       res.json({
         success: true,
         data: subscription,
-        message: "Subscription status updated successfully",
+        message: "Subscription updated successfully",
       });
     } catch (error) {
-      this.handleError(res, error, "Failed to update subscription status");
+      this.handleError(res, error, "Failed to update subscription");
     }
   }
 
@@ -161,56 +182,6 @@ class SubscriptionController extends BaseController {
       });
     } catch (error) {
       this.handleError(res, error, "Failed to get subscription statistics");
-    }
-  }
-
-  /**
-   * Lấy subscriptions sắp hết hạn
-   */
-  async getExpiringSubscriptions(req, res) {
-    try {
-      const days = req.query.days ? parseInt(req.query.days) : 7;
-      const subscriptions = await this.model.getExpiringSubscriptions(days);
-
-      res.json({
-        success: true,
-        data: subscriptions,
-        message: "Expiring subscriptions retrieved successfully",
-      });
-    } catch (error) {
-      this.handleError(res, error, "Failed to get expiring subscriptions");
-    }
-  }
-
-  /**
-   * Renew subscription
-   */
-  async renewSubscription(req, res) {
-    try {
-      const { subscriptionId } = req.params;
-      this.validateId(subscriptionId);
-
-      this.validateRequiredFields(req, ["end_date"]);
-
-      const subscription = await this.model.update(subscriptionId, {
-        end_date: req.body.end_date,
-        status: 'active'
-      });
-
-      if (!subscription) {
-        return res.status(404).json({
-          success: false,
-          message: "Subscription not found",
-        });
-      }
-
-      res.json({
-        success: true,
-        data: subscription,
-        message: "Subscription renewed successfully",
-      });
-    } catch (error) {
-      this.handleError(res, error, "Failed to renew subscription");
     }
   }
 }

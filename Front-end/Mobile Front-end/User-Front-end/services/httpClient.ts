@@ -1,4 +1,5 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const baseURL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -10,12 +11,13 @@ const httpClient = axios.create({
     },
 });
 
-// Interceptor cho request (ví dụ: tự động thêm token)
+// Request interceptor to automatically add auth token
 httpClient.interceptors.request.use(
     async (config) => {
-        // Ví dụ: Lấy token từ AsyncStorage hoặc context
-        // const token = await AsyncStorage.getItem('accessToken');
-        // if (token) config.headers.Authorization = `Bearer ${token}`;
+        const token = await AsyncStorage.getItem('auth_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => Promise.reject(error)

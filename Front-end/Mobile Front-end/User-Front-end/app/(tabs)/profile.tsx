@@ -2,22 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView, StatusBar, Platform, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { getUserProfile, updateUserProfile, User } from '../../services/userApi';
-
-// Default user data
-const defaultUser: Partial<User> = {
-    name: 'Loading...',
-    age: 0,
-    bio: 'Loading profile...',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-};
+import { getUserProfile, updateUserProfile, User, getCurrentUserId } from '../../services/userApi';
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const [user, setUser] = useState<Partial<User>>(defaultUser);
+    const [user, setUser] = useState<User | null>(null); // Initialize as null instead of undefined
+    const [consumable, setConsumable] = useState<any[]>([]); // Specify type for consumable
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [isGold, setIsGold] = useState(false);
 
     // Load user profile on component mount
     useEffect(() => {
@@ -29,9 +21,9 @@ export default function ProfileScreen() {
             setIsLoading(true);
             setError(null);
             const profileData = await getUserProfile();
-            setUser(profileData);
-            // Check if user has gold subscription (you can add this logic based on your backend)
-            setIsGold(profileData.status === 'gold' || false);
+            console.log("Profile data: ", profileData);            
+            setUser(profileData);   
+            loadConsumableOfUser();        
         } catch (err: any) {
             console.error('Error loading profile:', err);
             if (err.message === 'USER_NOT_LOGGED_IN') {
@@ -39,17 +31,33 @@ export default function ProfileScreen() {
             } else {
                 setError('Failed to load profile. Please try again.');
             }
-            // Keep default user data on error
         } finally {
             setIsLoading(false);
         }
     };
+    
+    const loadConsumableOfUser = async () => {
+        const userId = await getCurrentUserId();
+        if (!userId) return; // Guard against undefined user
+        try {
+            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/consumable/by-user/${userId}`, {
+                method: 'GET'
+            });
+            const data = await response.json();
+            console.log("Consumable of user: ", data);
+            setConsumable(data);
+        } catch (err) {
+            console.error('Error loading consumables:', err);
+        }
+    };    
 
     const handleEditProfile = () => {
-        router.push({
-            pathname: '/edit-profile',
-            params: { userId: user.id || user.user_id }
-        });
+        if (user?.id) {
+            router.push({
+                pathname: '/edit-profile',
+                params: { userId: user.id.toString() } // Ensure userId is string
+            });
+        }
     };
 
     const handleRefresh = () => {
@@ -69,7 +77,11 @@ export default function ProfileScreen() {
     };
 
     const handleUpgrade = () => {
-        Alert.alert('Nâng cấp', 'Mở trang nâng cấp...');
+        router.push('/subscriptions');
+    };
+
+    const handleConsumable = () => {
+        router.push('/consumable');
     };
 
     return (
@@ -112,12 +124,11 @@ export default function ProfileScreen() {
                             </TouchableOpacity>
                         )}
                     </View>
-                ) : (
+                ) : user ? (
                     <ScrollView showsVerticalScrollIndicator={false}>
                         {/* Avatar */}
                         <View style={styles.avatarBox}>
-                            <Image source={{ uri: user.avatar || defaultUser.avatar }} style={styles.avatar} />
-                            {isGold && <Text style={styles.goldBadge}>GOLD</Text>}
+                            <Image source={{ uri: user.avatar || 'https://picsum.photos/400/600' }} style={styles.avatar} />
                             <Text style={styles.name}>{user.name || 'Unknown User'}</Text>
                             <Text style={styles.age}>{user.age ? `${user.age} years old` : ''}</Text>
                             <Text style={styles.bio}>{user.bio || 'No bio available'}</Text>
@@ -126,67 +137,85 @@ export default function ProfileScreen() {
                             </TouchableOpacity>
                         </View>
                         <View style={styles.actions}>
-                        <View style={styles.statsContainer}>
-                            <View style={styles.statItem}>
-                                <Text style={styles.statValue}>100</Text>
-                                <Text style={styles.statLabel}>Super Likes</Text>
-                            </View>
-                            <View style={styles.statItem}>
-                                <Text style={styles.statValue}>50</Text>
-                                <Text style={styles.statLabel}>My Boots</Text>
-                            </View>
-                            <View style={styles.statItem}>
-                                <Text style={styles.statValue}>20</Text>
-                                <Text style={styles.statLabel}>Subscriptions</Text>
-                            </View>
-                        </View>
-                        {/* Upgrade */}
-                        <View style={styles.upgradeBox}>
-                            <Text style={styles.upgradeTitle}>Upgrade Your Experience</Text>
-                            <ScrollView
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                contentContainerStyle={styles.upgradeTiersContainer}
-                            >
-                                <TouchableOpacity style={[styles.tier, styles.tierGold]}>
-                                    <Text style={styles.tierName}>Gold</Text>
-                                    <Text style={styles.tierPrice}>$9.99<Text style={styles.tierPeriod}>/month</Text></Text>
-                                    <View style={styles.tierFeatures}>
-                                        <Text style={styles.tierFeature}>✓ Unlimited Likes</Text>
-                                        <Text style={styles.tierFeature}>✓ See who likes you</Text>
-                                        <Text style={styles.tierFeature}>✓ 5 Super Likes/week</Text>
-                                    </View>
-                                    <Text style={styles.tierPopular}>MOST POPULAR</Text>
+                            {/* Consumable and subscription */}
+                            <View style={styles.statsContainer}>
+                                {/* Super Likes */}
+                                <TouchableOpacity style={styles.statCard} onPress={handleConsumable}>
+                                    <Ionicons name="add-circle" size={20} color="#7C3AED" style={styles.plusIcon} />
+                                    <Text style={styles.statValue}>100</Text>
+                                    <Text style={styles.statLabel}>Super Likes</Text>
+                                    <Text style={styles.getMore}>GET MORE</Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity style={[styles.tier, styles.tierPlatinum]}>
-                                    <Text style={styles.tierName}>Platinum</Text>
-                                    <Text style={styles.tierPrice}>$19.99<Text style={styles.tierPeriod}>/month</Text></Text>
-                                    <View style={styles.tierFeatures}>
-                                        <Text style={styles.tierFeature}>✓ All Gold features</Text>
-                                        <Text style={styles.tierFeature}>✓ Message before matching</Text>
-                                        <Text style={styles.tierFeature}>✓ Priority likes</Text>
-                                        <Text style={styles.tierFeature}>✓ 10 Super Likes/week</Text>
-                                    </View>
-                                    <Text style={styles.tierPopular}>BEST VALUE</Text>
+                                {/* My Boots */}
+                                <TouchableOpacity style={styles.statCard} onPress={handleConsumable}>
+                                    <Ionicons name="add-circle" size={20} color="#7C3AED" style={styles.plusIcon} />
+                                    <Text style={styles.statValue}>50</Text>
+                                    <Text style={styles.statLabel}>My Boots</Text>
+                                    <Text style={styles.getMore}>GET MORE</Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity style={[styles.tier, styles.tierPlus]}>
-                                    <Text style={styles.tierName}>Plus</Text>
-                                    <Text style={styles.tierPrice}>$4.99<Text style={styles.tierPeriod}>/month</Text></Text>
-                                    <View style={styles.tierFeatures}>
-                                        <Text style={styles.tierFeature}>✓ Unlimited Likes</Text>
-                                        <Text style={styles.tierFeature}>✓ Rewind last swipe</Text>
-                                        <Text style={styles.tierFeature}>✓ 1 Super Like/week</Text>
-                                    </View>
+                                {/* Subscriptions */}
+                                <TouchableOpacity style={styles.statCard} onPress={handleUpgrade}>
+                                    <Ionicons name="add-circle" size={20} color="#7C3AED" style={styles.plusIcon} />                                    
+                                    <Text style={styles.statLabel}>Subscriptions</Text>
                                 </TouchableOpacity>
-                            </ScrollView>
-                            <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgrade}>
-                                <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
-                            </TouchableOpacity>
-                        </View>
+                            </View>
+                            {/* Upgrade */}
+                            <View style={styles.upgradeBox}>
+                                <Text style={styles.upgradeTitle}>Upgrade Your Experience</Text>
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={styles.upgradeTiersContainer}
+                                >
+                                    <TouchableOpacity style={[styles.tier, styles.tierGold]} onPress={handleUpgrade}>
+                                        <Text style={styles.tierName}>Gold</Text>
+                                        <Text style={styles.tierPrice}>$9.99<Text style={styles.tierPeriod}>/month</Text></Text>
+                                        <View style={styles.tierFeatures}>
+                                            <Text style={styles.tierFeature}>✓ Unlimited Likes</Text>
+                                            <Text style={styles.tierFeature}>✓ See who likes you</Text>
+                                            <Text style={styles.tierFeature}>✓ 5 Super Likes/week</Text>
+                                        </View>
+                                        <Text style={styles.tierPopular}>MOST POPULAR</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity style={[styles.tier, styles.tierPlatinum]} onPress={handleUpgrade}>
+                                        <Text style={styles.tierName}>Platinum</Text>
+                                        <Text style={styles.tierPrice}>$19.99<Text style={styles.tierPeriod}>/month</Text></Text>
+                                        <View style={styles.tierFeatures}>
+                                            <Text style={styles.tierFeature}>✓ All Gold features</Text>
+                                            <Text style={styles.tierFeature}>✓ Message before matching</Text>
+                                            <Text style={styles.tierFeature}>✓ Priority likes</Text>
+                                            <Text style={styles.tierFeature}>✓ 10 Super Likes/week</Text>
+                                        </View>
+                                        <Text style={styles.tierPopular}>BEST VALUE</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity style={[styles.tier, styles.tierPlus]} onPress={handleUpgrade}>
+                                        <Text style={styles.tierName}>Plus</Text>
+                                        <Text style={styles.tierPrice}>$4.99<Text style={styles.tierPeriod}>/month</Text></Text>
+                                        <View style={styles.tierFeatures}>
+                                            <Text style={styles.tierFeature}>✓ Unlimited Likes</Text>
+                                            <Text style={styles.tierFeature}>✓ Rewind last swipe</Text>
+                                            <Text style={styles.tierFeature}>✓ 1 Super Like/week</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                </ScrollView>
+                                <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgrade}>
+                                    <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </ScrollView>
+                ) : (
+                    <View style={styles.errorContainer}>
+                        <Ionicons name="alert-circle" size={48} color="#EF4444" />
+                        <Text style={styles.errorText}>No user data available.</Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+                            <Text style={styles.retryButtonText}>Try Again</Text>
+                        </TouchableOpacity>
+                    </View>
                 )}
             </View>
         </SafeAreaView>
@@ -412,6 +441,34 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         marginBottom: 24,
+    },
+    statCard: {
+        width: 110,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        position: 'relative',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    plusIcon: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+    },
+    getMore: {
+        marginTop: 6,
+        fontSize: 12,
+        color: '#7C3AED',
+        fontWeight: '600',
     },
     statItem: {
         alignItems: 'center',

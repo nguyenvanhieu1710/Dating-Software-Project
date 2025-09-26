@@ -15,11 +15,11 @@ class SwipeModel extends BaseModel {
       VALUES ($1, $2, $3)
       RETURNING *
     `;
-    
+
     const values = [
       swipeData.swiper_user_id,
       swipeData.swiped_user_id,
-      swipeData.action
+      swipeData.action,
     ];
 
     return await DatabaseHelper.getOne(sql, values);
@@ -37,7 +37,7 @@ class SwipeModel extends BaseModel {
   }
 
   /**
-   * Lấy danh sách người đã swipe
+   * Lấy danh sách người đã swipe (Lấy danh sách người mà mình đã vuốt)
    */
   async getSwipedUsers(userId, action = null) {
     let sql = `
@@ -48,21 +48,21 @@ class SwipeModel extends BaseModel {
       LEFT JOIN photos ph ON p.user_id = ph.user_id AND ph.order_index = 0
       WHERE s.swiper_user_id = $1
     `;
-    
+
     const params = [userId];
-    
+
     if (action) {
       sql += ` AND s.action = $2`;
       params.push(action);
     }
-    
+
     sql += ` ORDER BY s.created_at DESC`;
-    
+
     return await DatabaseHelper.getAll(sql, params);
   }
 
   /**
-   * Lấy danh sách người đã swipe mình
+   * Lấy danh sách người đã swipe mình (Lấy danh sách người đã vuốt mình)
    */
   async getSwipedByUsers(userId, action = null) {
     let sql = `
@@ -70,19 +70,23 @@ class SwipeModel extends BaseModel {
              ph.url as photo_url
       FROM swipes s
       JOIN profiles p ON s.swiper_user_id = p.user_id
-      LEFT JOIN photos ph ON p.user_id = ph.user_id AND ph.order_index = 0
+      LEFT JOIN (
+        SELECT DISTINCT ON (user_id) user_id, url
+        FROM photos
+        ORDER BY user_id, order_index
+      ) ph ON p.user_id = ph.user_id
       WHERE s.swiped_user_id = $1
-    `;
-    
+      `;
+
     const params = [userId];
-    
+
     if (action) {
       sql += ` AND s.action = $2`;
       params.push(action);
     }
-    
+
     sql += ` ORDER BY s.created_at DESC`;
-    
+
     return await DatabaseHelper.getAll(sql, params);
   }
 
@@ -122,7 +126,7 @@ class SwipeModel extends BaseModel {
       ORDER BY p.popularity_score DESC, p.last_active_at DESC
       LIMIT $2
     `;
-    
+
     return await DatabaseHelper.getAll(sql, [userId, limit]);
   }
 
@@ -134,7 +138,10 @@ class SwipeModel extends BaseModel {
       DELETE FROM swipes 
       WHERE swiper_user_id = $1 AND swiped_user_id = $2
     `;
-    const result = await DatabaseHelper.query(sql, [swiperUserId, swipedUserId]);
+    const result = await DatabaseHelper.query(sql, [
+      swiperUserId,
+      swipedUserId,
+    ]);
     return result.rowCount > 0;
   }
 
@@ -177,7 +184,7 @@ class SwipeModel extends BaseModel {
 
     // Thêm điều kiện WHERE nếu có
     if (whereClause.length > 0) {
-      sql += ` WHERE ${whereClause.join(' AND ')}`;
+      sql += ` WHERE ${whereClause.join(" AND ")}`;
     }
 
     // Thêm phân trang
@@ -187,12 +194,12 @@ class SwipeModel extends BaseModel {
     // Lấy tổng số bản ghi
     let countSql = `SELECT COUNT(*) as total FROM swipes`;
     if (whereClause.length > 0) {
-      countSql += ` WHERE ${whereClause.join(' AND ')}`;
+      countSql += ` WHERE ${whereClause.join(" AND ")}`;
     }
 
     const [swipes, totalResult] = await Promise.all([
       DatabaseHelper.getAll(sql, params),
-      DatabaseHelper.getOne(countSql, params.slice(0, -2)) // Bỏ 2 tham số limit và offset
+      DatabaseHelper.getOne(countSql, params.slice(0, -2)), // Bỏ 2 tham số limit và offset
     ]);
 
     return {
@@ -201,10 +208,10 @@ class SwipeModel extends BaseModel {
         total: parseInt(totalResult.total, 10),
         page: page,
         limit: limit,
-        totalPages: Math.ceil(totalResult.total / limit)
-      }
+        totalPages: Math.ceil(totalResult.total / limit),
+      },
     };
   }
 }
 
-module.exports = SwipeModel; 
+module.exports = SwipeModel;

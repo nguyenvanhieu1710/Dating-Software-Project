@@ -227,6 +227,75 @@ class ConsumableController extends BaseController {
       this.handleError(res, error, "Failed to get consumable statistics");
     }
   }
+
+  /**
+   * Get all
+   */
+  async getAllConsumables(req, res){
+    try {
+      const consumables = await this.model.getAllConsumables();
+
+      res.json({
+        success: true,
+        data: consumables,
+        message: "Consumables retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get consumables");
+    }
+  }
+
+  /**
+   * Create
+   */
+  async createConsumable(req, res){
+    try{
+      const consumable = await this.model.createConsumable(req.body);
+
+      res.json({
+        success: true,
+        data: consumable,
+        message: "Consumable created successfully",
+      });
+    }
+    catch(error){
+      this.handleError(res, error, "Failed to create consumable");
+    }
+  }
+
+  /**
+   * Update
+   */
+  async updateConsumable(req, res){
+    try {
+      const consumable = await this.model.updateConsumable(req.params.id, req.body);
+
+      res.json({
+        success: true,
+        data: consumable,
+        message: "Consumable updated successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to update consumable");
+    }
+  }
+
+  /**
+   * Delete
+   */
+  async deleteConsumable(req, res){
+    try {
+      const consumable = await this.model.deleteConsumable(req.params.id);
+
+      res.json({
+        success: true,
+        data: consumable,
+        message: "Consumable deleted successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to delete consumable");
+    }
+  }
 }
 
 module.exports = ConsumableController; 

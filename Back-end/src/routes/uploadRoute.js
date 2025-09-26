@@ -5,6 +5,8 @@ const router = express.Router();
 
 // Single file upload (field: file)
 router.post("/single", upload.single("file"), (req, res) => {
+  console.log("File:", req.file);
+  console.log("Body:", req.body);
   if (!req.file) {
     return res
       .status(400)

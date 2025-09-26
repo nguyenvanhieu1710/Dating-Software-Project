@@ -18,16 +18,23 @@ export interface User {
   job_title: string;
   school: string;
   location: any;
+  latitude?: number;    // Thêm vị trí
+  longitude?: number;   // Thêm vị trí
+  distance?: number;    // Khoảng cách tính toán
+  lastSeen?: Date;      // Thời gian online cuối
+  isOnline?: boolean;   // Trạng thái online
+  user_status: string;
   popularity_score: number;
   message_count: number;
   last_active_at: string;
   is_verified: boolean;
+  is_online: boolean;
+  last_seen?: string;
   photos?: string[];
   
   // UI helper fields (computed or optional)
   name?: string;
   age?: number;
-  distance?: number;
   avatar?: string;
 }
 
@@ -50,16 +57,8 @@ const calculateDistance = (): number => {
   return Math.floor(Math.random() * 50) + 1;
 };
 
-const getAvatarUrl = (userId: number, photos: string[]): string => {
-  // Use first photo if available, otherwise placeholder
-  if (photos && photos.length > 0) {
-    return photos[0];
-  }
-  return `https://picsum.photos/400/600?random=${userId}`;
-};
-
 // Helper function to get current user ID
-const getCurrentUserId = async (): Promise<number | null> => {
+export const getCurrentUserId = async (): Promise<number | null> => {
   try {
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) {
@@ -76,7 +75,12 @@ const enhanceUserWithUIFields = async (user: User): Promise<User> => {
   // Fetch real photos from API
   let userPhotos: string[] = [];
   try {
-    userPhotos = await getPhotoUrls(user.id);
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('USER_NOT_LOGGED_IN');
+    }
+    userPhotos = await getPhotoUrls(userId);
+    // console.log('Photos for user:', userPhotos);
   } catch (error) {
     console.error(`Failed to fetch photos for user ${user.id}:`, error);
   }
@@ -104,12 +108,30 @@ const enhanceUserWithUIFields = async (user: User): Promise<User> => {
 // Get the list of users to display on the discovery screen
 export const getDiscoveryUsers = async (): Promise<User[]> => {
   try {
-    const response = await httpClient.get('/user/with-profiles');
-    // console.log('Backend response:', response.data.data);
+    const token = await getCurrentToken();
+    console.log('Token:', token);
+    if (!token) {
+      throw new Error('USER_NOT_LOGGED_IN');
+    }
+    const response = await httpClient.get('/user/recommend', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    console.log('Backend response:', response.data.data);
     
     if (response.data.success && Array.isArray(response.data.data)) {
-      // Filter users with profiles and enhance with UI fields
-      const filteredUsers = response.data.data.filter((user: User) => user.first_name);
+      // Get current user ID to exclude from discovery list
+      const currentUserId = await getCurrentUserId();
+
+      // Filter users with profiles, exclude current user, and enhance with UI fields
+      const filteredUsers = response.data.data
+        .filter((user: User) => user.first_name)
+        .filter((user: User) => {
+          if (!currentUserId) return true;
+          // Some responses may use either `id` or `user_id` to reference the account
+          return user.id !== currentUserId && user.user_id !== currentUserId;
+        });
       
       // Use Promise.all to handle async enhanceUserWithUIFields
       const users = await Promise.all(
@@ -128,10 +150,42 @@ export const getDiscoveryUsers = async (): Promise<User[]> => {
   }
 };
 
+// Get token user
+export const getCurrentToken = async (): Promise<string | null> => {
+  try {
+    const token = await AsyncStorage.getItem('auth_token');
+    return token;
+  } catch (error) {
+    console.error('Error getting token:', error);
+    return null;
+  }
+};
+
 // Get current user profile
 export const getUserProfile = async (): Promise<User> => {
   try {
     const userId = await getCurrentUserId();
+    if (!userId) {
+      throw new Error('USER_NOT_LOGGED_IN');
+    }
+    
+    const response = await httpClient.get(`/profile/by-user/${userId}`);
+    // console.log('Profile of user response:', response.data);
+    
+    if (response.data.success && response.data.data) {
+      return await enhanceUserWithUIFields(response.data.data);
+    } else {
+      throw new Error('Invalid profile response format');
+    }
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    throw error;
+  }
+};
+
+// Get other user profile
+export const getOtherUserProfile = async (userId: number): Promise<User> => {
+  try {
     if (!userId) {
       throw new Error('USER_NOT_LOGGED_IN');
     }
@@ -157,8 +211,24 @@ export const updateUserProfile = async (profileData: Partial<User>): Promise<Use
     if (!userId) {
       throw new Error('USER_NOT_LOGGED_IN');
     }
-    
-    const response = await httpClient.put(`/profile/by-user/${userId}`, profileData);
+
+    // Backend expects longitude/latitude for updates. Map string location "lng,lat" if provided.
+    const payload: any = { ...profileData };
+    if (typeof profileData.location === 'string' && profileData.location.trim().length > 0) {
+      // Accept formats: "lng,lat" or "lng lat"
+      const match = profileData.location.trim().match(/^\s*(-?\d+\.?\d*)[\s,]+(-?\d+\.?\d*)\s*$/);
+      if (match) {
+        const lng = parseFloat(match[1]);
+        const lat = parseFloat(match[2]);
+        if (!Number.isNaN(lng) && !Number.isNaN(lat)) {
+          payload.longitude = lng;
+          payload.latitude = lat;
+          delete payload.location;
+        }
+      }
+    }
+
+    const response = await httpClient.put(`/profile/by-user/${userId}`, payload);
     console.log('Update profile response:', response.data);
     
     if (response.data.success && response.data.data) {

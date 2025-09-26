@@ -5,16 +5,45 @@ const settingsController = new SettingsController();
 
 const router = express.Router();
 
-// Settings routes
-router.get("/by-user/:userId", (req, res) => settingsController.getSettingsByUserId(req, res));
-router.post("/", authenticateToken, (req, res) => settingsController.createSettings(req, res));
-router.put("/by-user/:userId", (req, res) => settingsController.updateSettings(req, res));
-router.put("/by-user/:userId/upsert", (req, res) => settingsController.upsertSettings(req, res));
+// ==========================
+// Các route đặc biệt / cụ thể (đặt trước để tránh conflict với :userId)
+// ==========================
 
-// Specific settings updates
-router.put("/by-user/:userId/discoverable", (req, res) => settingsController.updateDiscoverableStatus(req, res));
-router.put("/by-user/:userId/distance", (req, res) => settingsController.updateSearchDistance(req, res));
-router.put("/by-user/:userId/age-range", (req, res) => settingsController.updateAgeRange(req, res));
-router.put("/by-user/:userId/preferred-gender", (req, res) => settingsController.updatePreferredGender(req, res));
+// Reset toàn bộ settings về mặc định cho user
+router.post("/:userId/reset", (req, res) =>
+  settingsController.resetSettings(req, res)
+);
 
-module.exports = router; 
+// Toggle nhanh notification
+router.patch("/:userId/notifications", (req, res) =>
+  settingsController.updateNotifications(req, res)
+);
+
+// Change theme riêng
+router.patch("/:userId/theme", (req, res) =>
+  settingsController.updateTheme(req, res)
+);
+
+// Change language riêng
+router.patch("/:userId/language", (req, res) =>
+  settingsController.updateLanguage(req, res)
+);
+
+// ==========================
+// CRUD chuẩn cho settings
+// ==========================
+router.get("/", (req, res) => settingsController.getAllSettings(req, res));
+router.get("/:userId", (req, res) =>
+  settingsController.getSettingsByUserId(req, res)
+);
+router.post("/", authenticateToken, (req, res) =>
+  settingsController.createSettings(req, res)
+);
+router.put("/:userId", (req, res) =>
+  settingsController.updateSettings(req, res)
+);
+// router.delete("/:userId", (req, res) =>
+//   settingsController.deleteSettings(req, res)
+// );
+
+module.exports = router;

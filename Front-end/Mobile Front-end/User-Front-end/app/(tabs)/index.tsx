@@ -1,142 +1,128 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, ActivityIndicator, Dimensions, StatusBar, SafeAreaView, Platform } from 'react-native';
-import { PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
-import { User, getDiscoveryUsers } from '@/services/userApi';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Animated,
+  ActivityIndicator,
+  Dimensions,
+  StatusBar,
+  SafeAreaView,
+  Platform,
+  Alert,
+} from "react-native";
+import {
+  PanGestureHandler,
+  State,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
+import { useRouter } from "expo-router";
+import { User, getDiscoveryUsers, getCurrentUserId } from "@/services/userApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { requestLocationPermission, getCurrentLocation, calculateDistance, UserLocation } from "@/utils/geolocation";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const SWIPE_THRESHOLD = screenWidth * 0.25;
-
-// Mock data as fallback
-// Mock data as fallback - matching new User interface
-const MOCK_USERS: User[] = [
-  {
-    // Backend fields
-    id: 1,
-    email: 'quynh.nhu@example.com',
-    phone_number: '+84901234567',
-    status: 'active',
-    created_at: '2024-01-15T10:30:00Z',
-    updated_at: '2024-01-15T10:30:00Z',
-    user_id: 1,
-    first_name: 'Quynh Nhu',
-    dob: '2003-05-15',
-    gender: 'female',
-    bio: 'Cat lover, enjoys traveling, and loves weekend coffee.',
-    job_title: 'Marketing Specialist',
-    school: 'University of Economics',
-    location: null,
-    popularity_score: 85.5,
-    message_count: 142,
-    last_active_at: '2024-01-15T10:30:00Z',
-    is_verified: true,
-    photos: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&h=400&fit=crop',
-    ],
-    // UI fields
-    name: 'Quynh Nhu',
-    age: 21,
-    distance: 1,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-  },
-  {
-    // Backend fields
-    id: 2,
-    email: 'ha.nguyen@example.com',
-    phone_number: '+84901234568',
-    status: 'active',
-    created_at: '2024-01-10T08:20:00Z',
-    updated_at: '2024-01-10T08:20:00Z',
-    user_id: 2,
-    first_name: 'Ha',
-    dob: '1997-08-22',
-    gender: 'female',
-    bio: 'Designer, enjoys drawing and listening to indie music.',
-    job_title: 'UI/UX Designer',
-    school: 'Art University',
-    location: null,
-    popularity_score: 92.3,
-    message_count: 89,
-    last_active_at: '2024-01-10T08:20:00Z',
-    is_verified: true,
-    photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-    ],
-    // UI fields
-    name: 'Ha',
-    age: 27,
-    distance: 5,
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop',
-  },
-  {
-    // Backend fields
-    id: 3,
-    email: 'minh.tran@example.com',
-    phone_number: '+84901234569',
-    status: 'active',
-    created_at: '2024-01-12T14:45:00Z',
-    updated_at: '2024-01-12T14:45:00Z',
-    user_id: 3,
-    first_name: 'Minh',
-    dob: '2001-03-10',
-    gender: 'male',
-    bio: 'Enjoys sports, runs every morning.',
-    job_title: 'Software Engineer',
-    school: 'Tech University',
-    location: null,
-    popularity_score: 78.1,
-    message_count: 56,
-    last_active_at: '2024-01-12T14:45:00Z',
-    is_verified: false,
-    photos: [
-      'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&h=400&fit=crop',
-    ],
-    // UI fields
-    name: 'Minh',
-    age: 23,
-    distance: 1,
-    avatar: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&h=400&fit=crop',
-  },
-];
 
 export default function DiscoveryScreen() {
   const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [current, setCurrent] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [maxDistance, setMaxDistance] = useState(50); // km
+
   const swipeAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const router = useRouter();
 
-  // Fetch users from API
+  // Initialize location and fetch users
   useEffect(() => {
-    const fetchUsers = async () => {
+    const initializeApp = async () => {
       try {
         setIsLoading(true);
-        // Uncomment this when your API is ready
+        
+        // 1. Request location permission
+        const hasPermission = await requestLocationPermission();
+        if (!hasPermission) {
+          Alert.alert(
+            'Location Permission Required',
+            'Please enable location permission to find nearby users.',
+            [{ text: 'OK' }]
+          );
+          setError('Location permission denied');
+          return;
+        }
+
+        // 2. Get current location
+        const location = await getCurrentLocation();
+        setUserLocation(location);
+        // console.log('Current location:', location);
+
+        // 3. Fetch users from API
         const data = await getDiscoveryUsers();
-        console.log('List of user:', data);
-        setUsers(data);      
+        setUsers(data);
+
+        // 4. Filter users by distance
+        const nearbyUsers = filterUsersByDistance(data, location, maxDistance);
+        setFilteredUsers(nearbyUsers);
+        
+        console.log(`Found ${nearbyUsers.length} users within ${maxDistance}km`);
+
       } catch (err) {
-        console.error('Error fetching users:', err);
-        setError('Failed to load user list. Please try again.');
-        setUsers(MOCK_USERS); // Fallback to mock data
+        console.error('Error initializing app:', err);
+        setError('Failed to load nearby users. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUsers();
+    initializeApp();
   }, []);
 
-  const user = users[current];
+  const filterUsersByDistance = (
+    users: User[],
+    userLocation: UserLocation,
+    maxDistance: number = 50 // km
+  ): User[] => {
+    return users
+      .map((user) => {
+        if (
+          user.location &&
+          typeof user.location === "object" &&
+          user.location.latitude &&
+          user.location.longitude
+        ) {
+          const distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            user.location.latitude,
+            user.location.longitude
+          );
+          return { ...user, distance: distance || 0 };
+        }
+        return { ...user, distance: 0 };
+      })
+      .filter((user) => user.distance !== null && user.distance <= maxDistance)
+      .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+  };
+
+  // Update filtered users when maxDistance changes
+  useEffect(() => {
+    if (userLocation && users.length > 0) {
+      const nearbyUsers = filterUsersByDistance(users, userLocation, maxDistance);
+      setFilteredUsers(nearbyUsers);
+      setCurrent(0); // Reset to first user
+    }
+  }, [maxDistance, users, userLocation]);
+
+  const user = filteredUsers[current];
 
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: swipeAnim } }],
@@ -149,7 +135,7 @@ export default function DiscoveryScreen() {
 
       if (Math.abs(translationX) > SWIPE_THRESHOLD) {
         // Swipe threshold met
-        const direction = translationX > 0 ? 'right' : 'left';
+        const direction = translationX > 0 ? "right" : "left";
         handleSwipe(direction);
       } else {
         // Return to center
@@ -161,13 +147,59 @@ export default function DiscoveryScreen() {
     }
   };
 
-  const handleSwipe = (direction: 'left' | 'right' | 'superlike') => {
-    if ((direction === 'right' || direction === 'superlike') && user && user.id === 1) {
+  const handleSwipe = async (direction: "left" | "right" | "superlike") => {
+    if (
+      (direction === "right" || direction === "superlike") &&
+      user &&
+      user.id === 1
+    ) {
       return;
     }
 
-    const targetValue = direction === 'left' ? -screenWidth * 1.5 : screenWidth * 1.5;
-    const rotateValue = direction === 'left' ? -30 : 30;
+    const currentUserId = await getCurrentUserId();
+    console.log("Current user ID (swiper_user_id):", currentUserId);
+    console.log("User ID (swiped_user_id):", user.id);
+    const token = await AsyncStorage.getItem("auth_token");
+    console.log("Token from AsyncStorage:", token);
+
+    let swipeType: string | null = null;
+    if (direction === "left") swipeType = "pass"; // dislike
+    if (direction === "right") swipeType = "like"; // like
+    if (direction === "superlike") swipeType = "superlike"; // superlike
+
+    if (swipeType && user) {
+      try {
+        const payload = {
+          swiper_user_id: currentUserId,
+          swiped_user_id: user.id,
+          action: swipeType,
+        };
+
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/swipe`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        const result = await response.json();
+        console.log("Swipe API response:", result);
+        if (result.message === "Already swiped this user") {
+          console.log("You have already swiped this user");
+        }
+      } catch (error) {
+        console.error("Swipe API error:", error);
+      }
+    }
+
+    const targetValue =
+      direction === "left" ? -screenWidth * 1.5 : screenWidth * 1.5;
+    const rotateValue = direction === "left" ? -30 : 30;
 
     Animated.parallel([
       Animated.timing(swipeAnim, {
@@ -179,7 +211,7 @@ export default function DiscoveryScreen() {
         toValue: rotateValue,
         duration: 250,
         useNativeDriver: true,
-      })
+      }),
     ]).start(() => {
       // Reset animations and move to next card
       swipeAnim.setValue(0);
@@ -189,10 +221,14 @@ export default function DiscoveryScreen() {
     });
   };
 
-  const handlePhotoNavigation = (direction: 'left' | 'right') => {
-    if (direction === 'left' && currentPhotoIndex > 0) {
+  const handlePhotoNavigation = (direction: "left" | "right") => {
+    if (direction === "left" && currentPhotoIndex > 0) {
       setCurrentPhotoIndex(currentPhotoIndex - 1);
-    } else if (direction === 'right' && user.photos && currentPhotoIndex < user.photos.length - 1) {
+    } else if (
+      direction === "right" &&
+      user.photos &&
+      currentPhotoIndex < user.photos.length - 1
+    ) {
       setCurrentPhotoIndex(currentPhotoIndex + 1);
     }
   };
@@ -202,16 +238,16 @@ export default function DiscoveryScreen() {
     setCurrentPhotoIndex(0);
   };
 
-  const handleBoost = () => {
-    router.push('/subscriptions');
+  const handleConsumable = () => {
+    router.push("/consumable");
   };
 
   const handleProfileDetail = () => {
-    router.push('/profile-detail');
+    router.push("/profile-detail");
   };
 
   const navigateToFriends = () => {
-    router.push('/friends');
+    router.push("/friends");
   };
 
   if (isLoading) {
@@ -228,7 +264,7 @@ export default function DiscoveryScreen() {
       <View style={[styles.safeArea, styles.centerContent]}>
         <Ionicons name="warning" size={48} color="#EF4444" />
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => setUsers(MOCK_USERS)}>
+        <TouchableOpacity style={styles.retryButton}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -247,7 +283,10 @@ export default function DiscoveryScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.light.background} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={Colors.light.background}
+      />
 
       {/* Header */}
       <View style={styles.header}>
@@ -256,20 +295,28 @@ export default function DiscoveryScreen() {
           <Text style={styles.logoText}>Vibe</Text>
         </View>
         <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => navigateToFriends()}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigateToFriends()}
+          >
             <Ionicons name="people" size={16} color="#8B5CF6" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerBtn}>
             <Ionicons name="search" size={16} color="#8B5CF6" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerBtn}>
+          <TouchableOpacity style={styles.headerBtn} onPress={handleConsumable}>
             <Ionicons name="flash" size={16} color="#8B5CF6" />
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Main Content */}
-      <GestureHandlerRootView style={styles.mainContainer}>
+      <GestureHandlerRootView
+        style={[
+          styles.mainContainer,
+          Platform.OS === "web" && styles.webContainer,
+        ]}
+      >
         <View style={styles.cardContainer}>
           <PanGestureHandler
             onGestureEvent={onGestureEvent}
@@ -284,15 +331,17 @@ export default function DiscoveryScreen() {
                     {
                       rotate: rotateAnim.interpolate({
                         inputRange: [-30, 0, 30],
-                        outputRange: ['-30deg', '0deg', '30deg']
-                      })
-                    }
+                        outputRange: ["-30deg", "0deg", "30deg"],
+                      }),
+                    },
                   ],
                 },
               ]}
             >
               <Image
-                source={{ uri: user.photos?.[currentPhotoIndex] || user.avatar || '' }}
+                source={{
+                  uri: user.photos?.[currentPhotoIndex] || user.avatar || "",
+                }}
                 style={styles.cardImage}
               />
 
@@ -303,7 +352,7 @@ export default function DiscoveryScreen() {
                     key={index}
                     style={[
                       styles.photoProgressBar,
-                      index === currentPhotoIndex && styles.photoProgressActive
+                      index === currentPhotoIndex && styles.photoProgressActive,
                     ]}
                   />
                 ))}
@@ -313,13 +362,15 @@ export default function DiscoveryScreen() {
               <View style={styles.photoNavigation}>
                 <TouchableOpacity
                   style={styles.photoNavLeft}
-                  onPress={() => handlePhotoNavigation('left')}
+                  onPress={() => handlePhotoNavigation("left")}
                   disabled={currentPhotoIndex === 0}
                 />
                 <TouchableOpacity
                   style={styles.photoNavRight}
-                  onPress={() => handlePhotoNavigation('right')}
-                  disabled={!user.photos || currentPhotoIndex === user.photos.length - 1}
+                  onPress={() => handlePhotoNavigation("right")}
+                  disabled={
+                    !user.photos || currentPhotoIndex === user.photos.length - 1
+                  }
                 />
               </View>
 
@@ -328,12 +379,19 @@ export default function DiscoveryScreen() {
                 <View style={styles.userInfoLeft}>
                   <View style={styles.locationTag}>
                     <Ionicons name="location" size={12} color="#fff" />
-                    <Text style={styles.locationText}>{user.distance} km away</Text>
+                    <Text style={styles.locationText}>
+                      {user.distance} km away
+                    </Text>
                   </View>
-                  <Text style={styles.userName}>{user.name}, {user.age}</Text>
+                  <Text style={styles.userName}>
+                    {user.name}, {user.age}
+                  </Text>
                   <Text style={styles.userDistance}>{user.bio}</Text>
                 </View>
-                <TouchableOpacity style={styles.detailBtn} onPress={handleProfileDetail}>
+                <TouchableOpacity
+                  style={styles.detailBtn}
+                  onPress={handleProfileDetail}
+                >
                   <Ionicons name="arrow-up" size={20} color="#000" />
                 </TouchableOpacity>
               </View>
@@ -343,20 +401,35 @@ export default function DiscoveryScreen() {
 
         {/* Action Buttons - Cố định ở dưới */}
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={[styles.actionBtn, styles.rewindBtn]} onPress={handleRewind}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.rewindBtn]}
+            onPress={handleRewind}
+          >
             <Ionicons name="refresh" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.passBtn]} onPress={() => handleSwipe('left')}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.passBtn]}
+            onPress={() => handleSwipe("left")}
+          >
             <Ionicons name="close" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.superlikeBtn]} onPress={() => handleSwipe('superlike')}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.superlikeBtn]}
+            onPress={() => handleConsumable()}
+          >
             <Ionicons name="star" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.likeBtn]} onPress={() => handleSwipe('right')}>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.likeBtn]}
+            onPress={() => handleSwipe("right")}
+          >
             <Ionicons name="heart" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.boostBtn]} onPress={handleBoost}>
-            <Ionicons name="rocket" size={24} color="#fff" />
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.boostBtn]}
+            onPress={handleConsumable}
+          >
+            <Ionicons name="flash" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       </GestureHandlerRootView>
@@ -369,107 +442,114 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.background,
   },
+  // On web, constrain width to avoid stretching across large screens
+  webContainer: {
+    width: "100%",
+    maxWidth: 480,
+    alignSelf: "center",
+  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    paddingTop: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 0) + 15,
-    backgroundColor: '#fff',
+    paddingTop:
+      Platform.OS === "ios" ? 44 : (StatusBar.currentHeight || 0) + 15,
+    backgroundColor: "#fff",
   },
   logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    flexDirection: "row",
+    alignItems: "center",
   },
   logoText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#8B5CF6', // Màu tím thống nhất
+    fontWeight: "bold",
+    color: "#8B5CF6", // Màu tím thống nhất
   },
   headerButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 15,
   },
   headerBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    borderColor: 'gray',
+    borderColor: "gray",
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   mainContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    position: 'relative',
+    backgroundColor: "#fff",
+    position: "relative",
   },
   cardContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
     width: "100%",
     height: "100%",
     borderRadius: 20,
-    overflow: 'hidden',
-    position: 'relative',
-    shadowColor: '#000',
+    overflow: "hidden",
+    position: "relative",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
   cardImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   photoNavigation: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   photoNavLeft: {
     flex: 1, // Chiếm nửa bên trái
-    height: '100%',
+    height: "100%",
   },
   photoNavRight: {
     flex: 1, // Chiếm nửa bên phải
-    height: '100%',
+    height: "100%",
   },
   photoProgressContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     left: 20,
     right: 20,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
     zIndex: 5,
   },
   photoProgressBar: {
     flex: 1,
     height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
     borderRadius: 2,
   },
   photoProgressActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   userInfoOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 70,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
     padding: 20,
     paddingBottom: 30,
   },
@@ -477,54 +557,54 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   locationTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#8B5CF6', // Màu tím thống nhất
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#8B5CF6", // Màu tím thống nhất
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginBottom: 8,
   },
 
   locationText: {
     fontSize: 12,
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   userName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginBottom: 4,
   },
   userDistance: {
     fontSize: 16,
-    color: '#fff',
+    color: "#fff",
     opacity: 0.9,
   },
   detailBtn: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 20,
   },
 
   actionButtons: {
-    position: 'absolute', // Đè lên card container
+    position: "absolute", // Đè lên card container
     bottom: 0, // Cố định ở dưới
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 40,
     paddingVertical: 20,
     gap: 15,
     zIndex: 10, // Đảm bảo đè lên card
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -534,70 +614,114 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
 
   rewindBtn: {
-    backgroundColor: '#8B5CF6', // Màu tím thống nhất
+    backgroundColor: "#8B5CF6", // Màu tím thống nhất
   },
   passBtn: {
-    backgroundColor: '#8B5CF6', // Màu tím thống nhất
+    backgroundColor: "#8B5CF6", // Màu tím thống nhất
   },
   superlikeBtn: {
-    backgroundColor: '#8B5CF6', // Màu tím thống nhất
+    backgroundColor: "#8B5CF6", // Màu tím thống nhất
   },
   likeBtn: {
-    backgroundColor: '#8B5CF6', // Màu tím thống nhất
+    backgroundColor: "#8B5CF6", // Màu tím thống nhất
   },
   boostBtn: {
-    backgroundColor: '#8B5CF6', // Màu tím thống nhất
+    backgroundColor: "#8B5CF6", // Màu tím thống nhất
   },
   centerContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#EF4444',
-    textAlign: 'center',
+    color: "#EF4444",
+    textAlign: "center",
     marginBottom: 20,
   },
   noUsersText: {
     marginTop: 16,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#4B5563',
+    fontWeight: "600",
+    color: "#4B5563",
   },
   subText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+    color: "#9CA3AF",
+    textAlign: "center",
   },
   retryButton: {
     marginTop: 20,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: "#8B5CF6",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
   },
   retryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
     fontSize: 16,
+  },
+  distanceFilter: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  filterLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  distanceButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  distanceBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    alignItems: "center",
+  },
+  distanceBtnActive: {
+    backgroundColor: "#8B5CF6",
+    borderColor: "#8B5CF6",
+  },
+  distanceBtnText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  distanceBtnTextActive: {
+    color: "#fff",
+  },
+  distanceText: {
+    fontSize: 10,
+    color: "#8B5CF6",
+    fontWeight: "600",
   },
 });

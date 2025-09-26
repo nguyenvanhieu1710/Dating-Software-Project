@@ -157,9 +157,21 @@ export const getMatches = async (): Promise<Match[]> => {
     const response = await httpClient.get(`/match/by-user/${userId}`);
     
     if (response.data.success && Array.isArray(response.data.data)) {
+      // Deduplicate by user pair (order independent)
+      const baseMatches: Match[] = response.data.data;
+      const uniqueByPair = new Map<string, Match>();
+      for (const m of baseMatches) {
+        const userA = Math.min(Number(m.user1_id), Number(m.user2_id));
+        const userB = Math.max(Number(m.user1_id), Number(m.user2_id));
+        const pairKey = `${userA}-${userB}`;
+        if (!uniqueByPair.has(pairKey)) {
+          uniqueByPair.set(pairKey, m);
+        }
+      }
+
       // Enhance matches with UI fields
       const matches = await Promise.all(
-        response.data.data.map((match: Match) => enhanceMatchWithUIFields(match))
+        Array.from(uniqueByPair.values()).map((match: Match) => enhanceMatchWithUIFields(match))
       );
       
       // Sort by last message time (most recent first)
@@ -197,77 +209,6 @@ export const getMatchById = async (matchId: number): Promise<Match | null> => {
   } catch (error) {
     console.error('Error fetching match:', error);
     return null;
-  }
-};
-
-// Get messages for a match
-export const getMatchMessages = async (matchId: number, limit: number = 50, offset: number = 0): Promise<Message[]> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
-
-    const response = await httpClient.get(`/match/${matchId}/by-user/${userId}/messages`, {
-      params: { limit, offset }
-    });
-    
-    if (response.data.success && Array.isArray(response.data.data)) {
-      // Transform the API response to match our Message interface
-      return response.data.data.map((message: any) => ({
-        ...message,
-        sender: {
-          first_name: message.first_name,
-          gender: message.gender
-        }
-      }));
-    } else {
-      console.warn('Unexpected messages response format:', response.data);
-      return [];
-    }
-  } catch (error) {
-    console.error('Error fetching match messages:', error);
-    throw error;
-  }
-};
-
-// Send message in a match
-export const sendMessage = async (matchId: number, content: string): Promise<Message | null> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
-
-    const response = await httpClient.post(`/match/${matchId}/by-user/${userId}/messages`, {
-      content
-    });
-    
-    if (response.data.success && response.data.data) {
-      return response.data.data;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error sending message:', error);
-    throw error;
-  }
-};
-
-// Mark messages as read
-export const markMessagesAsRead = async (matchId: number): Promise<boolean> => {
-  try {
-    const userId = await getCurrentUserId();
-    if (!userId) {
-      throw new Error('User not logged in');
-    }
-
-    const response = await httpClient.put(`/match/${matchId}/by-user/${userId}/messages/read`);
-    
-    return response.data.success;
-  } catch (error) {
-    console.error('Error marking messages as read:', error);
-    return false;
   }
 };
 

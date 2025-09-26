@@ -7,6 +7,14 @@ class SettingsModel extends BaseModel {
   }
 
   /**
+   * Lấy tất cả settings
+   */
+  async getAllSettings() {
+    const sql = `SELECT * FROM settings`;
+    return await DatabaseHelper.getAll(sql);
+  }
+
+  /**
    * Lấy settings theo user_id
    */
   async findByUserId(userId) {
@@ -18,24 +26,58 @@ class SettingsModel extends BaseModel {
    * Tạo settings mới
    */
   async createSettings(settingsData) {
-    const sql = `
-      INSERT INTO settings (
-        user_id, preferred_gender, min_age, max_age, 
-        max_distance_km, is_discoverable
-      ) VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `;
-    
-    const values = [
-      settingsData.user_id,
-      settingsData.preferred_gender || 'all',
-      settingsData.min_age || 18,
-      settingsData.max_age || 55,
-      settingsData.max_distance_km || 50,
-      settingsData.is_discoverable !== false
-    ];
+    return await DatabaseHelper.transaction(async (client) => {
+      const sql = `
+        INSERT INTO settings (
+          user_id, preferred_gender, min_age, max_age, max_distance_km, show_me,
+          is_discoverable, hide_age, hide_distance, show_last_active, show_online_status,
+          block_messages_from_strangers, new_matches_notification, new_messages_notification,
+          message_likes_notification, message_super_likes_notification, profile_views_notification,
+          email_notifications, push_notifications, promotional_emails,
+          language, theme, account_type, verification_status, preferences,
+          created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6,
+          $7, $8, $9, $10, $11,
+          $12, $13, $14,
+          $15, $16, $17,
+          $18, $19, $20,
+          $21, $22, $23, $24, $25,
+          NOW(), NOW()
+        )
+        RETURNING *
+      `;
 
-    return await DatabaseHelper.getOne(sql, values);
+      const values = [
+        settingsData.user_id,
+        settingsData.preferred_gender || null,
+        settingsData.min_age || 18,
+        settingsData.max_age || 55,
+        settingsData.max_distance_km || 50,
+        settingsData.show_me || ["male", "female", "other"],
+        settingsData.is_discoverable !== false,
+        settingsData.hide_age || false,
+        settingsData.hide_distance || false,
+        settingsData.show_last_active || true,
+        settingsData.show_online_status || true,
+        settingsData.block_messages_from_strangers || false,
+        settingsData.new_matches_notification !== false,
+        settingsData.new_messages_notification !== false,
+        settingsData.message_likes_notification !== false,
+        settingsData.message_super_likes_notification !== false,
+        settingsData.profile_views_notification !== false,
+        settingsData.email_notifications !== false,
+        settingsData.push_notifications !== false,
+        settingsData.promotional_emails !== false,
+        settingsData.language || "en",
+        settingsData.theme || "system",
+        settingsData.account_type || "free",
+        settingsData.verification_status || "pending",
+        settingsData.preferences || {}
+      ];
+
+      return await client.getOne(sql, values);
+    });
   }
 
   /**
@@ -68,16 +110,43 @@ class SettingsModel extends BaseModel {
   }
 
   /**
-   * Tạo hoặc cập nhật settings
+   * Reset settings về mặc định
    */
-  async upsertSettings(userId, settingsData) {
-    const existingSettings = await this.findByUserId(userId);
-    
-    if (existingSettings) {
-      return await this.updateSettings(userId, settingsData);
-    } else {
-      return await this.createSettings({ user_id: userId, ...settingsData });
-    }
+  async resetToDefault(userId) {
+    return await DatabaseHelper.transaction(async (client) => {
+      const sql = `
+        UPDATE settings
+        SET
+          preferred_gender = NULL,
+          min_age = 18,
+          max_age = 55,
+          max_distance_km = 50,
+          show_me = '{"male","female","other"}',
+          is_discoverable = true,
+          hide_age = false,
+          hide_distance = false,
+          show_last_active = true,
+          show_online_status = true,
+          block_messages_from_strangers = false,
+          new_matches_notification = true,
+          new_messages_notification = true,
+          message_likes_notification = true,
+          message_super_likes_notification = true,
+          profile_views_notification = true,
+          email_notifications = true,
+          push_notifications = true,
+          promotional_emails = false,
+          language = 'en',
+          theme = 'system',
+          account_type = 'free',
+          verification_status = 'pending',
+          preferences = '{}'::jsonb,
+          updated_at = NOW()
+        WHERE user_id = $1
+        RETURNING *
+      `;
+      return await client.getOne(sql, [userId]);
+    });
   }
 }
 

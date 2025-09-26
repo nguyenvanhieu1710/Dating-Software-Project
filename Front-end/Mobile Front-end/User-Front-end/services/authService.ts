@@ -36,7 +36,8 @@ class AuthService {
   // Login user
   public static async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post<AuthResponse>('/user/login', credentials);
+      const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+      // console.log('Login response:', response.data);
       await this.storeAuthData(response);
       return response;
     } catch (error) {
@@ -48,48 +49,12 @@ class AuthService {
   // Register new user
   public static async register(userData: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post<AuthResponse>('/user/register', userData);
+      const response = await apiClient.post<AuthResponse>('/auth/register', userData);
+      console.log('Register response:', response.data);
       await this.storeAuthData(response);
       return response;
     } catch (error) {
       console.error('Registration error:', error);
-      throw error;
-    }
-  }
-
-  // Verify OTP
-  public static async verifyOtp(userId: string, otp: string): Promise<void> {
-    try {
-      await apiClient.put(`/user/${userId}/verify`, { otp });
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      throw error;
-    }
-  }
-
-  // Reset password
-  public static async resetPassword(email: string): Promise<void> {
-    try {
-      await apiClient.post('/user/reset-password', { email });
-    } catch (error) {
-      console.error('Password reset error:', error);
-      throw error;
-    }
-  }
-
-  // Change password
-  public static async changePassword(
-    userId: string,
-    currentPassword: string,
-    newPassword: string
-  ): Promise<void> {
-    try {
-      await apiClient.put(`/user/${userId}/change-password`, {
-        currentPassword,
-        newPassword,
-      });
-    } catch (error) {
-      console.error('Change password error:', error);
       throw error;
     }
   }

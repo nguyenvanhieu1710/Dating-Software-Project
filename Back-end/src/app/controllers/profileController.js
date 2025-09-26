@@ -39,26 +39,26 @@ class ProfileController extends BaseController {
     }
   }
 
-  /**
-   * Tạo profile mới
-   */
-  async createProfile(req, res) {
-    try {
-      this.validateRequiredFields(req, [
-        "user_id", "first_name", "dob", "gender"
-      ]);
+  // /**
+  //  * Tạo profile mới
+  //  */
+  // async createProfile(req, res) {
+  //   try {
+  //     this.validateRequiredFields(req, [
+  //       "user_id", "first_name", "dob", "gender"
+  //     ]);
 
-      const profile = await this.model.createProfile(req.body);
+  //     const profile = await this.model.createProfile(req.body);
 
-      res.status(201).json({
-        success: true,
-        data: profile,
-        message: "Profile created successfully",
-      });
-    } catch (error) {
-      this.handleError(res, error, "Failed to create profile");
-    }
-  }
+  //     res.status(201).json({
+  //       success: true,
+  //       data: profile,
+  //       message: "Profile created successfully",
+  //     });
+  //   } catch (error) {
+  //     this.handleError(res, error, "Failed to create profile");
+  //   }
+  // }
 
   /**
    * Cập nhật profile
@@ -132,53 +132,6 @@ class ProfileController extends BaseController {
       });
     } catch (error) {
       this.handleError(res, error, "Failed to update last active");
-    }
-  }
-
-  /**
-   * Tính toán popularity score
-   */
-  async calculatePopularityScore(req, res) {
-    try {
-      const { userId } = req.params;
-      this.validateId(userId);
-
-      const result = await this.model.calculatePopularityScore(userId);
-
-      res.json({
-        success: true,
-        data: result,
-        message: "Popularity score calculated successfully",
-      });
-    } catch (error) {
-      this.handleError(res, error, "Failed to calculate popularity score");
-    }
-  }
-
-  /**
-   * Lấy potential matches (người chưa swipe)
-   */
-  async getPotentialMatches(req, res) {
-    try {
-      const { userId } = req.params;
-      this.validateId(userId);
-
-      const limit = req.query.limit ? parseInt(req.query.limit) : 20;
-      const profiles = await this.model.getPotentialMatches(userId, limit);
-
-      // Lấy ảnh cho mỗi profile
-      for (let profile of profiles) {
-        const photos = await this.photoModel.findByUserId(profile.user_id);
-        profile.photos = photos;
-      }
-
-      res.json({
-        success: true,
-        data: profiles,
-        message: "Potential matches retrieved successfully",
-      });
-    } catch (error) {
-      this.handleError(res, error, "Failed to get potential matches");
     }
   }
 }

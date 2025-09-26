@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import AuthService, { LoginCredentials } from '../services/authService';
 import { setCurrentUserId } from '../services/userApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -29,10 +30,18 @@ export default function LoginScreen() {
                 const authResponse = await AuthService.login(credentials);
                 console.log("Login response: ", authResponse);
                 
+                // The token is already saved by AuthService.login()
+                // We can verify it's there
+                const token = await AsyncStorage.getItem('auth_token');
+                console.log("Stored token exists:", !!token);
+                
                 // Store user ID for API calls
                 if (authResponse.data && authResponse.data.user) {
                     await setCurrentUserId(authResponse.data.user.id);
                     console.log("User ID: ", authResponse.data.user.id);
+                    
+                    // Also store user data in AsyncStorage for quick access
+                    await AsyncStorage.setItem('user_data', JSON.stringify(authResponse.data.user));
                 } else {
                     console.log("No user data in response");
                 }

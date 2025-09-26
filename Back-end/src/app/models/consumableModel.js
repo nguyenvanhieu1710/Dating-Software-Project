@@ -15,65 +15,6 @@ class ConsumableModel extends BaseModel {
   }
 
   /**
-   * Tạo hoặc cập nhật consumables
-   */
-  async upsertConsumables(userId, consumableData) {
-    const existing = await this.findByUserId(userId);
-    
-    if (existing) {
-      return await this.updateConsumables(userId, consumableData);
-    } else {
-      return await this.createConsumables(userId, consumableData);
-    }
-  }
-
-  /**
-   * Tạo consumables mới
-   */
-  async createConsumables(userId, consumableData) {
-    const sql = `
-      INSERT INTO consumables (
-        user_id, super_likes_balance, boosts_balance, last_super_like_reset
-      ) VALUES ($1, $2, $3, $4)
-      RETURNING *
-    `;
-    
-    const values = [
-      userId,
-      consumableData.super_likes_balance || 0,
-      consumableData.boosts_balance || 0,
-      consumableData.last_super_like_reset || new Date()
-    ];
-
-    return await DatabaseHelper.getOne(sql, values);
-  }
-
-  /**
-   * Cập nhật consumables
-   */
-  async updateConsumables(userId, consumableData) {
-    const sql = `
-      UPDATE consumables 
-      SET 
-        super_likes_balance = COALESCE($2, super_likes_balance),
-        boosts_balance = COALESCE($3, boosts_balance),
-        last_super_like_reset = COALESCE($4, last_super_like_reset),
-        updated_at = NOW()
-      WHERE user_id = $1
-      RETURNING *
-    `;
-    
-    const values = [
-      userId,
-      consumableData.super_likes_balance,
-      consumableData.boosts_balance,
-      consumableData.last_super_like_reset
-    ];
-
-    return await DatabaseHelper.getOne(sql, values);
-  }
-
-  /**
    * Sử dụng super like
    */
   async useSuperLike(userId) {
@@ -148,10 +89,10 @@ class ConsumableModel extends BaseModel {
   async canUseSuperLike(userId) {
     const consumables = await this.findByUserId(userId);
     if (!consumables) return false;
-    
+
     // Reset daily super likes nếu cần
     await this.resetDailySuperLikes(userId);
-    
+
     const updatedConsumables = await this.findByUserId(userId);
     return updatedConsumables && updatedConsumables.super_likes_balance > 0;
   }
@@ -177,6 +118,74 @@ class ConsumableModel extends BaseModel {
     `;
     return await DatabaseHelper.getOne(sql);
   }
+
+  /**
+   * Get All
+   */
+  async getAllConsumables() {
+    const sql = `SELECT * FROM consumables`;
+    return await DatabaseHelper.getAll(sql);
+  }
+
+  /**
+   * Create
+   */
+  async createConsumable(consumableData){
+    return await DatabaseHelper.transaction(async (client) => {
+      const sql = `
+        INSERT INTO consumables (
+          user_id, super_likes_balance, boosts_balance, last_super_like_reset
+        ) VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `;
+
+      return await client.query(sql, [
+        consumableData.user_id,
+        consumableData.super_likes_balance,
+        consumableData.boosts_balance,
+        consumableData.last_super_like_reset,
+      ]);
+    });
+  }
+
+  /**
+   * updateConsumable
+   */
+  async updateConsumable(userId, consumableData) {
+    return await DatabaseHelper.transaction(async (client) => {
+      const sql = `
+        UPDATE consumables 
+        SET 
+          super_likes_balance = COALESCE($2, super_likes_balance),
+          boosts_balance = COALESCE($3, boosts_balance),
+          last_super_like_reset = COALESCE($4, last_super_like_reset),
+          updated_at = NOW()
+        WHERE user_id = $1
+        RETURNING *
+      `;
+
+      return await client.query(sql, [
+        userId,
+        consumableData.super_likes_balance,
+        consumableData.boosts_balance,
+        consumableData.last_super_like_reset,
+      ]);
+    });
+  }
+
+  /**
+   * Xóa consumable
+   */
+  async deleteConsumable(userId) {
+    return await DatabaseHelper.transaction(async (client) => {
+      const sql = `
+      DELETE FROM consumables 
+      WHERE user_id = $1
+      RETURNING *
+    `;
+      return await client.query(sql, [userId]);
+    });
+  }
 }
 
-module.exports = ConsumableModel; 
+module.exports = ConsumableModel;
