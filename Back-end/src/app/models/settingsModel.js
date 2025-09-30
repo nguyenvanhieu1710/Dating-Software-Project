@@ -73,10 +73,12 @@ class SettingsModel extends BaseModel {
         settingsData.theme || "system",
         settingsData.account_type || "free",
         settingsData.verification_status || "pending",
-        settingsData.preferences || {}
+        settingsData.preferences || {},
       ];
 
-      return await client.getOne(sql, values);
+      // return await client.getOne(sql, values);
+      const result = await client.query(sql, values);
+      return result.rows[0];
     });
   }
 
@@ -96,14 +98,14 @@ class SettingsModel extends BaseModel {
       WHERE user_id = $1
       RETURNING *
     `;
-    
+
     const values = [
       userId,
       settingsData.preferred_gender,
       settingsData.min_age,
       settingsData.max_age,
       settingsData.max_distance_km,
-      settingsData.is_discoverable
+      settingsData.is_discoverable,
     ];
 
     return await DatabaseHelper.getOne(sql, values);
@@ -150,4 +152,4 @@ class SettingsModel extends BaseModel {
   }
 }
 
-module.exports = SettingsModel; 
+module.exports = SettingsModel;

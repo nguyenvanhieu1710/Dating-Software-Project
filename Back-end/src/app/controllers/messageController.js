@@ -14,6 +14,34 @@ class MessageController extends BaseController {
     this.socketManager = socketManager;
   }
 
+  /**
+   * Kiểm tra xem user có thuộc match không
+   * @param {number} matchId - ID của match cần kiểm tra
+   * @param {number} userId - ID của user cần xác thực
+   * @returns {Promise<object|null>} Trả về thông tin match nếu user thuộc match, ngược lại trả về null
+   */
+  async validateUserInMatch(matchId, userId) {
+    try {
+      // Lấy thông tin match từ database
+      const match = await this.matchModel.getMatchById(matchId, userId);
+
+      // Nếu không tìm thấy match
+      if (!match) {
+        return null;
+      }
+
+      // Kiểm tra user có phải là user1 hoặc user2 trong match không
+      if (match.user1_id === userId || match.user2_id === userId) {
+        return match;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Lỗi khi xác thực user trong match:", error);
+      return null;
+    }
+  }
+
   // ================================
   // CRUD cơ bản cho messages
   // ================================
@@ -55,6 +83,36 @@ class MessageController extends BaseController {
       });
     } catch (error) {
       this.handleError(res, error, "Failed to create message");
+    }
+  }
+
+  /**
+   * Lấy thông tin người gửi tin nhắn
+   * @param {number} userId - ID của người gửi
+   * @returns {Promise<object>} Thông tin người gửi
+   */
+  async getSenderProfile(userId) {
+    try {
+      const userModel = require("../models/userModel");
+      const user = await userModel.getUserById(userId);
+
+      if (!user) {
+        return { id: userId, name: "Người dùng ẩn danh" };
+      }
+
+      // Trả về các thông tin cần thiết cho tin nhắn
+      return {
+        id: user.id,
+        name: user.name || user.username || `User ${userId}`,
+        avatar: user.avatar || null,
+      };
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin người gửi:", error);
+      return {
+        id: userId,
+        name: `User ${userId}`,
+        avatar: null,
+      };
     }
   }
 
@@ -109,12 +167,10 @@ class MessageController extends BaseController {
         req.body
       );
       if (!message) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "Message not found or not owned by user",
-          });
+        return res.status(404).json({
+          success: false,
+          message: "Message not found or not owned by user",
+        });
       }
       res.json({
         success: true,

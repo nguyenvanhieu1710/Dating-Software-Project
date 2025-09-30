@@ -13,12 +13,14 @@ const photoRoute = require("./photoRoute");
 const settingsRoute = require("./settingsRoute");
 const subscriptionRoute = require("./subscriptionRoute");
 const consumableRoute = require("./consumableRoute");
-const adminRoute = require("./adminRoute");
 const interestRoute = require("./interestRoute");
 const goalRoute = require("./goalRoute");
+const moderationRoute = require("./moderationRoute");
+const adminUserRoute = require("./adminUserRoute");
+const paymentRoute = require("./paymentRoute");
+const notificationRoute = require("./notificationRoute");
 
 // Register all routes
-router.use("/admin", adminRoute);
 router.use("/auth", authRoute);
 router.use("/user", userRoute);
 router.use("/upload", uploadRoute);
@@ -32,5 +34,9 @@ router.use("/subscription", subscriptionRoute);
 router.use("/consumable", consumableRoute);
 router.use("/interests", interestRoute);
 router.use("/goals", goalRoute);
+router.use("/moderation", moderationRoute);
+router.use("/admin-user", adminUserRoute);
+router.use("/payment", paymentRoute);
+router.use("/notifications", notificationRoute);
 
 module.exports = router;

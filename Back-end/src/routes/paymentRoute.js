@@ -1,5 +1,5 @@
 const express = require("express");
-const PaymentsController = require("../app/controllers/PaymentsController");
+const PaymentsController = require("../app/controllers/paymentController");
 const { authenticateToken } = require("../app/middlewares/authMiddleware");
 const paymentsController = new PaymentsController();
 
