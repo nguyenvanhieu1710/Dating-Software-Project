@@ -27,6 +27,11 @@ class SettingsModel extends BaseModel {
    */
   async createSettings(settingsData) {
     return await DatabaseHelper.transaction(async (client) => {
+      const user_id = settingsData.user_id;
+      const findSettings = await this.findByUserId(user_id);
+      if (findSettings) {
+        return await this.updateSettings(settingsData.user_id, settingsData);
+      }
       const sql = `
         INSERT INTO settings (
           user_id, preferred_gender, min_age, max_age, max_distance_km, show_me,
@@ -93,7 +98,26 @@ class SettingsModel extends BaseModel {
         min_age = COALESCE($3, min_age),
         max_age = COALESCE($4, max_age),
         max_distance_km = COALESCE($5, max_distance_km),
-        is_discoverable = COALESCE($6, is_discoverable),
+        show_me = COALESCE($6, show_me),
+        is_discoverable = COALESCE($7, is_discoverable),
+        hide_age = COALESCE($8, hide_age),
+        hide_distance = COALESCE($9, hide_distance),
+        show_last_active = COALESCE($10, show_last_active),
+        show_online_status = COALESCE($11, show_online_status),
+        block_messages_from_strangers = COALESCE($12, block_messages_from_strangers),
+        new_matches_notification = COALESCE($13, new_matches_notification),
+        new_messages_notification = COALESCE($14, new_messages_notification),
+        message_likes_notification = COALESCE($15, message_likes_notification),
+        message_super_likes_notification = COALESCE($16, message_super_likes_notification),
+        profile_views_notification = COALESCE($17, profile_views_notification),
+        email_notifications = COALESCE($18, email_notifications),
+        push_notifications = COALESCE($19, push_notifications),
+        promotional_emails = COALESCE($20, promotional_emails),
+        language = COALESCE($21, language),
+        theme = COALESCE($22, theme),
+        account_type = COALESCE($23, account_type),
+        verification_status = COALESCE($24, verification_status),
+        preferences = COALESCE($25, preferences),
         updated_at = NOW()
       WHERE user_id = $1
       RETURNING *
@@ -102,11 +126,31 @@ class SettingsModel extends BaseModel {
     const values = [
       userId,
       settingsData.preferred_gender,
-      settingsData.min_age,
-      settingsData.max_age,
-      settingsData.max_distance_km,
-      settingsData.is_discoverable,
+      settingsData.min_age || 18,
+      settingsData.max_age || 55,
+      settingsData.max_distance_km || 50,
+      settingsData.show_me || ["male", "female", "other"],
+      settingsData.is_discoverable || true,
+      settingsData.hide_age || false,
+      settingsData.hide_distance || false,
+      settingsData.show_last_active || true,
+      settingsData.show_online_status || true,
+      settingsData.block_messages_from_strangers || false,
+      settingsData.new_matches_notification || true,
+      settingsData.new_messages_notification || true,
+      settingsData.message_likes_notification || true,
+      settingsData.message_super_likes_notification || true,
+      settingsData.profile_views_notification || true,
+      settingsData.email_notifications || true,
+      settingsData.push_notifications || true,
+      settingsData.promotional_emails || false,
+      settingsData.language || "en",
+      settingsData.theme || "system",
+      settingsData.account_type || "free",
+      settingsData.verification_status || "pending",
+      settingsData.preferences || {},
     ];
+    
 
     return await DatabaseHelper.getOne(sql, values);
   }

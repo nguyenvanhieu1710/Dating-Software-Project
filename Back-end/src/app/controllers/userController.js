@@ -151,13 +151,17 @@ class UserController extends BaseController {
         education: req.body.education || "Bachelor's Degree",
         height_cm: req.body.height_cm || 175,
         relationship_goals: req.body.relationship_goals || "Looking for serious relationship",
-        location: req.body.location || "POINT(106.660172 10.762622)",
+        location: req.body.location,
         popularity_score: req.body.popularity_score || 0.0,
         last_active_at: req.body.last_active_at || new Date(),
         is_verified: req.body.is_verified || false,
         is_online: req.body.is_online || true,
         last_seen: req.body.last_seen || null,
       };
+      if (req.body.location && !req.body.location.startsWith("POINT")) {
+        const [lat, lon] = req.body.location.split(",").map(n => n.trim());
+        profileData.location = `POINT(${lon} ${lat})`;
+      }
       // console.log("Profile data:", profileData);
       // return;
 
@@ -394,6 +398,30 @@ class UserController extends BaseController {
   }
 
   /**
+   * get all block
+   */
+  async getBlocks(req, res) {
+    try {
+      const blocks = await this.model.getBlocks();
+
+      if (!blocks) {
+        return res.status(404).json({
+          success: false,
+          message: "Blocks not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: blocks,
+        message: "Blocks retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to retrieve blocks");
+    }
+  }
+
+  /**
    * Block a user
    */
   async blockUser(req, res) {
@@ -442,6 +470,30 @@ class UserController extends BaseController {
       });
     } catch (error) {
       this.handleError(res, error, "Failed to unblock user");
+    }
+  }
+
+  /**
+   * Get all device
+   */
+  async getDevices(req, res) {
+    try {
+      const devices = await this.model.getDevices();
+
+      if (!devices) {
+        return res.status(404).json({
+          success: false,
+          message: "Devices not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: devices,
+        message: "Devices retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to retrieve devices");
     }
   }
 
@@ -501,6 +553,8 @@ class UserController extends BaseController {
   async updateDevice(req, res) {
     try {
       const { id } = req.params;
+      console.log(id);
+      console.log(req.body);
 
       const device = await this.model.updateDevice(id, req.body);
 

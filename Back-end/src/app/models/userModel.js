@@ -154,7 +154,7 @@ class UserModel extends BaseModel {
                 VALUES (${userPlaceholders})
                 RETURNING *
             `;
-      console.log("User SQL:", userSql);
+      // console.log("User SQL:", userSql);
       console.log("User values:", userValues);
       //   return;
       const user = await client.query(userSql, userValues);
@@ -172,7 +172,7 @@ class UserModel extends BaseModel {
                     VALUES ($${profileValues.length + 1}, ${profilePlaceholders})
                     RETURNING *
                 `;
-        console.log("Profile SQL:", profileSql);
+        // console.log("Profile SQL:", profileSql);
         console.log("Profile values:", profileValues);
         // return;
         await client.query(profileSql, [...profileValues, user.rows[0].id]);
@@ -373,6 +373,13 @@ class UserModel extends BaseModel {
   }
 
   /**
+   * get all block
+   */
+  async getBlocks() {
+    return await DatabaseHelper.getAll(`SELECT * FROM user_blocks`);
+  }
+
+  /**
    * Block a user
    */
   async blockUser(blocker_id, blocked_id) {
@@ -418,6 +425,13 @@ class UserModel extends BaseModel {
       const result = await client.query(sql, [blocker_id, blocked_id]);
       return result.rows[0];
     });
+  }
+
+  /**
+   * get all device
+   */
+  async getDevices() {
+    return await DatabaseHelper.getAll(`SELECT * FROM user_devices`);
   }
 
   /**
@@ -521,11 +535,14 @@ class UserModel extends BaseModel {
    */
   async updateDevice(id, user_device_data) {
     return await DatabaseHelper.transaction(async (client) => {
+      console.log(id);
+      console.log(user_device_data);
       // Kiểm tra device có tồn tại không
       const existingDevice = await client.query(
         `SELECT id, user_id FROM user_devices WHERE id = $1`,
         [id]
       );
+      // console.log(existingDevice);
 
       if (existingDevice.rows.length === 0) {
         throw new Error("Device not found");

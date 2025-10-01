@@ -15,13 +15,13 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    console.log('Auth headers:', req.headers['authorization']);
+    // console.log('Auth headers:', req.headers['authorization']);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded token:', JSON.stringify(decoded, null, 2));
-    console.log('Request URL:', req.originalUrl);
-    console.log('Request method:', req.method);
+    // console.log('Decoded token:', JSON.stringify(decoded, null, 2));
+    // console.log('Request URL:', req.originalUrl);
+    // console.log('Request method:', req.method);
     req.user = decoded;
-    console.log('Set req.user to:', JSON.stringify(req.user, null, 2));
+    // console.log('Set req.user to:', JSON.stringify(req.user, null, 2));
     next();
   } catch (error) {
     return res.status(403).json({

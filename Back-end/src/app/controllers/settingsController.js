@@ -54,22 +54,8 @@ class SettingsController extends BaseController {
    */
   async createSettings(req, res) {
     try {
-      // Lấy userId từ JWT token (được set bởi auth middleware)
-      const userId = req.user?.userId;
-
-      if (!userId) {
-        return res.status(401).json({
-          success: false,
-          message: "User not authenticated",
-        });
-      }
-
-      // Thêm user_id vào request body từ JWT token
-      const settingsData = {
-        ...req.body,
-        user_id: userId
-      };
-
+      const settingsData = req.body;
+      console.log(settingsData);      
       const settings = await this.model.createSettings(settingsData);
 
       res.status(201).json({

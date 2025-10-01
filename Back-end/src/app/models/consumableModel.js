@@ -26,6 +26,7 @@ class ConsumableModel extends BaseModel {
    * Create
    */
   async createConsumable(consumableData){
+    // console.log(consumableData);    
     return await DatabaseHelper.transaction(async (client) => {
       const user = await this.findByUserId(consumableData.user_id);
       if(user){

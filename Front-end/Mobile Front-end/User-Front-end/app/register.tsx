@@ -1,131 +1,206 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, SafeAreaView, StatusBar, Platform } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
+} from "react-native";
+import { useRouter } from "expo-router";
+import {
+  Appbar,
+  Button,
+  Card,
+  Divider,
+  Text,
+  TextInput,
+  useTheme,
+} from "react-native-paper";
 
 export default function RegisterScreen() {
-    const router = useRouter();
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirm, setConfirm] = useState('');
+  const router = useRouter();
+  const theme = useTheme();
 
-    const handleRegister = () => {
-        if (!name || !email || !password || !confirm) {
-            Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ thông tin');
-            return;
-        }
-        if (password !== confirm) {
-            Alert.alert('Lỗi', 'Mật khẩu xác nhận không khớp');
-            return;
-        }
-        // Giả lập đăng ký thành công
-        Alert.alert('Thành công', 'Đăng ký thành công!');
-        router.replace('/login');
-    };
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-    return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.light.background} />
-            <View style={styles.container}>
-                <Text style={styles.title}>Đăng ký tài khoản</Text>
-                <Text style={styles.label}>Tên của bạn</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nhập tên"
-                    value={name}
-                    onChangeText={setName}
-                />
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nhập email"
-                    keyboardType="email-address"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                />
-                <Text style={styles.label}>Mật khẩu</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nhập mật khẩu"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                />
-                <Text style={styles.label}>Xác nhận mật khẩu</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nhập lại mật khẩu"
-                    secureTextEntry
-                    value={confirm}
-                    onChangeText={setConfirm}
-                />
-                <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                    <Text style={styles.buttonText}>Đăng ký</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.linkButton} onPress={() => router.replace('/login')}>
-                    <Text style={styles.linkButtonText}>Đã có tài khoản? Đăng nhập</Text>
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
-    );
+  const handleRegister = () => {
+    if (!name || !email || !password || !confirm) {
+      return Alert.alert("Error", "Please fill in all fields");
+    }
+    if (password !== confirm) {
+      return Alert.alert("Error", "Passwords do not match");
+    }
+    // Giả lập đăng ký thành công
+    Alert.alert("Success", "Account created successfully!");
+    router.replace("/login");
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      {/* Header */}
+      <Appbar.Header style={{ backgroundColor: theme.colors.primary }}>
+        <Appbar.BackAction
+          onPress={() => router.back()}
+          color={theme.colors.onPrimary}
+        />
+        <Appbar.Content
+          title="Create Account"
+          titleStyle={{
+            color: theme.colors.onPrimary,
+            fontWeight: "bold",
+          }}
+        />
+      </Appbar.Header>
+
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
+        {/* Title */}
+        <Text
+          variant="headlineMedium"
+          style={{
+            textAlign: "center",
+            fontWeight: "bold",
+            marginTop: 24,
+            color: theme.colors.onBackground,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
+          }}
+        >
+          Join Us Today
+        </Text>
+
+        <Text
+          variant="bodyMedium"
+          style={{
+            textAlign: "center",
+            marginBottom: 24,
+            marginTop: 8,
+            opacity: 0.8,
+            color: theme.colors.onBackground,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
+          }}
+        >
+          Create an account to start your journey
+        </Text>
+
+        {/* Form */}
+        <Card style={{ padding: 16, backgroundColor: theme.colors.surface }}>
+          <TextInput
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            mode="outlined"
+            left={<TextInput.Icon icon="account" />}
+            style={{ marginBottom: 16 }}
+            theme={{
+              colors: { background: theme.colors.surface },
+            }}
+          />
+
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            mode="outlined"
+            left={<TextInput.Icon icon="email" />}
+            style={{ marginBottom: 16 }}
+            theme={{
+              colors: { background: theme.colors.surface },
+            }}
+          />
+
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            mode="outlined"
+            left={<TextInput.Icon icon="lock" />}
+            right={
+              <TextInput.Icon
+                icon={showPassword ? "eye" : "eye-off"}
+                onPress={() => setShowPassword(!showPassword)}
+              />
+            }
+            style={{ marginBottom: 16 }}
+            theme={{
+              colors: { background: theme.colors.surface },
+            }}
+          />
+
+          <TextInput
+            label="Confirm Password"
+            value={confirm}
+            onChangeText={setConfirm}
+            secureTextEntry={!showConfirm}
+            mode="outlined"
+            left={<TextInput.Icon icon="lock-check" />}
+            right={
+              <TextInput.Icon
+                icon={showConfirm ? "eye" : "eye-off"}
+                onPress={() => setShowConfirm(!showConfirm)}
+              />
+            }
+            style={{ marginBottom: 16 }}
+            theme={{
+              colors: { background: theme.colors.surface },
+            }}
+          />
+
+          <Button
+            mode="contained"
+            onPress={handleRegister}
+            loading={isLoading}
+            disabled={isLoading}
+            style={{ marginTop: 8, borderRadius: 12 }}
+            contentStyle={{ height: 56 }}
+            theme={{
+                fonts: {
+                  labelLarge: {
+                    fontFamily: theme.fonts.bodyLarge.fontFamily,
+                  },
+                },
+              }}
+          >
+            Register
+          </Button>
+
+          <Divider style={{ marginVertical: 24 }} />
+
+          <Button
+            mode="text"
+            onPress={() => router.replace("/login")}
+            style={{ alignSelf: "center" }}
+          >
+            <Text
+              variant="bodyMedium"
+              style={{
+                color: theme.colors.onSurface,
+                fontFamily: theme.fonts.bodyLarge.fontFamily,
+              }}
+            >
+              Already have an account?{" "}
+              <Text
+                style={{
+                  color: theme.colors.primary,
+                  fontWeight: "bold",
+                  fontFamily: theme.fonts.bodyLarge.fontFamily,
+                }}
+              >
+                Login
+              </Text>
+            </Text>
+          </Button>
+        </Card>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
-
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: Colors.light.background,
-    },
-    container: {
-        flex: 1,
-        backgroundColor: Colors.light.background,
-        justifyContent: 'center',
-        padding: 24,
-        paddingTop: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 0) + 24,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: Colors.light.primary,
-        marginBottom: 24,
-        textAlign: 'center',
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginBottom: 8,
-        color: Colors.light.text,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-        borderRadius: 10,
-        padding: 14,
-        marginBottom: 16,
-        fontSize: 16,
-        color: Colors.light.text,
-        backgroundColor: Colors.light.card,
-    },
-    button: {
-        backgroundColor: Colors.light.primary,
-        padding: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 8,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    linkButton: {
-        alignItems: 'center',
-        marginTop: 16,
-    },
-    linkButtonText: {
-        color: Colors.light.primary,
-        fontSize: 15,
-        fontWeight: '500',
-    },
-}); 

@@ -1,231 +1,180 @@
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image, ScrollView, SafeAreaView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import React from "react";
+import { FlatList, Image } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  Appbar,
+  Avatar,
+  Button,
+  Card,
+  IconButton,
+  Surface,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
 interface UserItem {
-    id: string;
-    name: string;
-    avatar: string | null;
-    status: 'online' | 'offline' | 'add';
+  id: string;
+  name: string;
+  avatar: string | null;
+  status: "online" | "offline" | "add";
 }
 
-const USERS = [
-    { id: '1', name: 'Alex', avatar: 'https://randomuser.me/api/portraits/men/1.jpg', status: 'online' },
-    { id: '2', name: 'Sarah', avatar: 'https://randomuser.me/api/portraits/women/2.jpg', status: 'online' },
-    { id: '3', name: 'Mike', avatar: 'https://randomuser.me/api/portraits/men/3.jpg', status: 'offline' },
-    { id: '4', name: 'Emma', avatar: 'https://randomuser.me/api/portraits/women/4.jpg', status: 'online' },
-    { id: '5', name: 'John', avatar: 'https://randomuser.me/api/portraits/men/5.jpg', status: 'offline' },
-    { id: '6', name: 'Add', avatar: null, status: 'add' },
+const USERS: UserItem[] = [
+  {
+    id: "1",
+    name: "Alex",
+    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    status: "online",
+  },
+  {
+    id: "2",
+    name: "Sarah",
+    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+    status: "online",
+  },
+  {
+    id: "3",
+    name: "Mike",
+    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+    status: "offline",
+  },
+  {
+    id: "4",
+    name: "Emma",
+    avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+    status: "online",
+  },
+  {
+    id: "5",
+    name: "John",
+    avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+    status: "offline",
+  },
+  { id: "6", name: "Add", avatar: null, status: "add" },
 ];
 
 const renderItem = ({ item }: { item: UserItem }) => {
-    if (item.status === 'add') {
-        return (
-            <TouchableOpacity style={styles.addFriendButton}>
-                <Ionicons name="person-add" size={24} color="#6D28D9" />
-                <Text style={styles.addFriendText}>Add</Text>
-            </TouchableOpacity>
-        );
-    }
 
+  if (item.status === "add") {
     return (
-        <View style={styles.friendItem}>
-            <View style={styles.avatarContainer}>
-                <Image source={{ uri: item.avatar }} style={styles.avatar} />
-                {item.status === 'online' && <View style={styles.onlineBadge} />}
-            </View>
-            <Text style={styles.friendName} numberOfLines={1}>{item.name}</Text>
-        </View>
+      <Surface
+        style={{
+          margin: 8,
+          padding: 16,
+          borderRadius: 50,
+          alignItems: "center",
+          justifyContent: "center",
+          borderStyle: "dashed",
+          borderWidth: 1,
+        }}
+      >
+        <IconButton
+          icon="account-plus"
+          size={28}
+        />
+        <Text variant="labelSmall">
+          Add
+        </Text>
+      </Surface>
     );
+  }
+
+  return (
+    <Surface
+      style={{ margin: 8, alignItems: "center", width: 90, elevation: 1 }}
+    >
+      <Avatar.Image size={72} source={{ uri: item.avatar! }} />
+      {item.status === "online" && (
+        <Surface
+          style={{
+            position: "absolute",
+            right: 10,
+            bottom: 30,
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+          }}
+          children={undefined}
+        />
+      )}
+      <Text variant="bodySmall" style={{ marginTop: 6 }} numberOfLines={1}>
+        {item.name}
+      </Text>
+    </Surface>
+  );
 };
 
 export default function FriendsScreen() {
-    const router = useRouter();
-    return (
-        <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerContent}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#1F2937" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Friends</Text>
-                    <TouchableOpacity style={styles.settingsButton}>
-                        <Ionicons name="settings-outline" size={24} color="#6D28D9" />
-                    </TouchableOpacity>
-                </View>
-            </View>
+  const router = useRouter();
+  const theme = useTheme();
 
-            <ScrollView style={styles.content}>
-                {/* Double Date Friends */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Double Date Friends</Text>
-                    <FlatList
-                        data={USERS}
-                        numColumns={3}
-                        keyExtractor={item => item.id}
-                        renderItem={renderItem}
-                        scrollEnabled={false}
-                        contentContainerStyle={styles.friendsGrid}
-                    />
-                    <Text style={styles.sectionSubtitle}>
-                        Invite up to 3 friends to pair up on Double Date
-                    </Text>
-                </View>
+  return (
+    <Surface style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => router.back()} />
+        <Appbar.Content title="Friends" />
+        <Appbar.Action icon="cog-outline" onPress={() => {}} />
+      </Appbar.Header>
 
-                {/* Invites */}
-                <View style={[styles.section, styles.invitesSection]}>
-                    <Text style={styles.sectionTitle}>Invites</Text>
-                    <View style={styles.emptyState}>
-                        <Ionicons name="people-outline" size={48} color="#D1D5DB" />
-                        <Text style={styles.emptyStateText}>
-                            You'll see your Double Date friends here
-                        </Text>
-                    </View>
-                </View>
-            </ScrollView>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <Card style={{ margin: 16, padding: 12 }}>
+              <Card.Title title="Double Date Friends" />
+              <FlatList
+                data={USERS}
+                numColumns={3}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+                scrollEnabled={false}
+                contentContainerStyle={{ justifyContent: "center" }}
+              />
+              <Text
+                variant="bodySmall"
+                style={{
+                  textAlign: "center",
+                  color: theme.colors.onSurfaceVariant,
+                }}
+              >
+                Invite up to 3 friends to pair up on Double Date
+              </Text>
+            </Card>
 
-            {/* Invite Friends Button */}
-            <TouchableOpacity style={styles.inviteButton}>
-                <Ionicons name="person-add" size={20} color="#FFFFFF" />
-                <Text style={styles.inviteButtonText}>Invite Friends</Text>
-            </TouchableOpacity>
-        </SafeAreaView>
-    );
+            <Card style={{ margin: 16, padding: 16 }}>
+              <Card.Title title="Invites" />
+              <Surface
+                style={{
+                  borderRadius: 12,
+                  padding: 24,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: theme.colors.surfaceVariant,
+                }}
+              >
+                <IconButton icon="account-group-outline" size={48} />
+                <Text
+                  variant="bodyMedium"
+                  style={{ textAlign: "center", marginTop: 8 }}
+                >
+                  You'll see your Double Date friends here
+                </Text>
+              </Surface>
+            </Card>
+          </>
+        }
+        data={undefined}
+        renderItem={undefined}
+      />
+
+      <Button
+        mode="contained"
+        icon="account-plus"
+        style={{ margin: 16, borderRadius: 12 }}
+        contentStyle={{ paddingVertical: 6 }}
+        onPress={() => {}}
+      >
+        Invite Friends
+      </Button>
+    </Surface>
+  );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    backButton: {
-        padding: 8,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    settingsButton: {
-        padding: 8,
-    },
-    content: {
-        flex: 1,
-        padding: 16,
-    },
-    section: {
-        marginBottom: 24,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#111827',
-        marginBottom: 16,
-    },
-    sectionSubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-        textAlign: 'center',
-        marginTop: 12,
-    },
-    friendsGrid: {
-        justifyContent: 'space-between',
-    },
-    friendItem: {
-        width: '30%',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    avatarContainer: {
-        position: 'relative',
-        marginBottom: 8,
-    },
-    avatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#F3F4F6',
-    },
-    onlineBadge: {
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#10B981',
-        borderWidth: 2,
-        borderColor: '#FFFFFF',
-    },
-    friendName: {
-        fontSize: 14,
-        color: '#374151',
-        textAlign: 'center',
-        maxWidth: '100%',
-    },
-    addFriendButton: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#F9FAFB',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderStyle: 'dashed',
-    },
-    addFriendText: {
-        marginTop: 4,
-        fontSize: 12,
-        color: '#6D28D9',
-        fontWeight: '500',
-    },
-    invitesSection: {
-        flex: 1,
-    },
-    emptyState: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
-        padding: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 200,
-    },
-    emptyStateText: {
-        marginTop: 12,
-        fontSize: 14,
-        color: '#6B7280',
-        textAlign: 'center',
-    },
-    inviteButton: {
-        flexDirection: 'row',
-        backgroundColor: '#6D28D9',
-        padding: 16,
-        borderRadius: 12,
-        margin: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#6D28D9',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    inviteButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-        marginLeft: 8,
-    },
-});
