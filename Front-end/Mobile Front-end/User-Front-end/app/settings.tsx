@@ -1,292 +1,315 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, SafeAreaView, StatusBar, Platform, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import React from "react";
+import { ActivityIndicator, StatusBar, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Snackbar, Text, TouchableRipple } from "react-native-paper";
+import { ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "react-native-paper";
+import { useRouter } from "expo-router";
+import { SettingSection } from "./user-setting/UserSettingSection";
+import { SettingItem } from "./user-setting/UserSettingItem";
+import { authService } from "../services/auth.service";
+import { userSettingService } from "@/services/user-setting.service";
+import Header from "@/components/header/Header";
+import { useEffect, useState } from "react";
+import { ISetting, UpdateSettingRequest } from "@/types/setting";
 
 export default function SettingsScreen() {
-    const router = useRouter();
-    const [notifications, setNotifications] = React.useState(true);
-    const [location, setLocation] = React.useState(true);
-    const [darkMode, setDarkMode] = React.useState(false);
+  const router = useRouter();
+  const theme = useTheme();
+  const [settings, setSettings] = React.useState<ISetting | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [showProfile, setShowProfile] = useState(true);
+  const [showDistance, setShowDistance] = useState(true);
+  const [showAge, setShowAge] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const onToggleSnackBar = () => setVisible(!visible);
+  const onDismissSnackBar = () => setVisible(false);
 
-    const SettingSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-        <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{title}</Text>
-            <View style={styles.sectionContent}>
-                {children}
-            </View>
-        </View>
-    );
+  const getUserSetting = async () => {
+    setLoading(true);
+    try {
+      const user = await authService.getUser();
+      // console.log(user);
+      if (user) {
+        const response = await userSettingService.getSettingsByUserId(user.id);
+        // console.log(response);
+        if (response.success && response.data) {
+          console.log("get setting success: ", response.data);
+          const s = response.data;
+          setSettings(s);
+          setDarkMode(s.theme === "dark");
+          setNotifications(s.push_notifications);
+          setShowProfile(s.is_discoverable);
+          setShowDistance(!s.hide_distance);
+          setShowAge(!s.hide_age);
+        } else {
+          throw new Error(response.message || "Failed to fetch settings");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const SettingItem = ({ 
-        label, 
-        icon, 
-        onPress, 
-        hasSwitch = false, 
-        switchValue = false, 
-        onSwitchChange = () => {},
-        isDanger = false
-    }: { 
-        label: string; 
-        icon?: string; 
-        onPress?: () => void; 
-        hasSwitch?: boolean;
-        switchValue?: boolean;
-        onSwitchChange?: (value: boolean) => void;
-        isDanger?: boolean;
-    }) => (
-        <TouchableOpacity 
-            style={[styles.settingItem, isDanger && styles.dangerItem]} 
-            onPress={onPress}
-            disabled={hasSwitch}
-        >
-            <View style={styles.settingItemLeft}>
-                {icon && <Ionicons name={icon as any} size={20} color={isDanger ? Colors.light.error : Colors.light.primary} style={styles.settingIcon} />}
-                <Text style={[styles.settingText, isDanger && styles.dangerText]}>{label}</Text>
-            </View>
-            {hasSwitch ? (
-                <Switch
-                    value={switchValue}
-                    onValueChange={onSwitchChange}
-                    trackColor={{ false: '#E5E7EB', true: Colors.light.primary }}
-                    thumbColor={switchValue ? '#fff' : '#9CA3AF'}
-                />
-            ) : (
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-            )}
-        </TouchableOpacity>
-    );
+  const handleSave = async () => {
+    if (!settings) return;
+    const patch: UpdateSettingRequest = {
+      theme: darkMode ? "dark" : "light",
+      push_notifications: notifications,
+      is_discoverable: showProfile,
+      hide_distance: !showDistance,
+      hide_age: !showAge,
 
+      // các field bắt buộc nhưng UI không có
+      preferred_gender: settings.preferred_gender || "other",
+      min_age: settings.min_age || 18,
+      max_age: settings.max_age || 50,
+      max_distance_km: settings.max_distance_km || 50,
+      show_me: settings.show_me || ["male", "female"],
+      language: settings.language || "en",
+      account_type: settings.account_type || "free",
+      verification_status: settings.verification_status || "pending",
+      preferences: settings.preferences || {},
+    };
+
+    try {
+      console.log("Update setting: ", patch);
+      const res = await userSettingService.updateSetting(
+        settings.user_id,
+        patch
+      );
+      if (res.success) {
+        setSettings(res.data);
+      }
+    } catch (err) {
+      console.error("Update failed", err);
+    } finally {
+    }
+  };
+
+  useEffect(() => {
+    getUserSetting();
+  }, []);
+
+  if (loading) {
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.light.background} />
-            
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerContent}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <Ionicons name="arrow-back" size={24} color="#1F2937" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Settings</Text>
-                </View>
-            </View>
-
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Account Section */}
-                <SettingSection title="Account">
-                    <SettingItem 
-                        label="Edit Profile" 
-                        icon="person-outline"
-                        onPress={() => {}}
-                    />
-                    <SettingItem 
-                        label="Change Password" 
-                        icon="key-outline"
-                        onPress={() => {}}
-                    />
-                    <SettingItem 
-                        label="Phone Number" 
-                        icon="phone-portrait-outline"
-                        onPress={() => {}}
-                    />
-                    <SettingItem 
-                        label="Delete Account" 
-                        icon="trash-outline"
-                        onPress={() => {}}
-                        isDanger
-                    />
-                </SettingSection>
-
-                {/* Preferences Section */}
-                <SettingSection title="Preferences">
-                    <SettingItem 
-                        label="Dark Mode" 
-                        icon="moon-outline"
-                        hasSwitch
-                        switchValue={darkMode}
-                        onSwitchChange={setDarkMode}
-                    />
-                    <SettingItem 
-                        label="Push Notifications" 
-                        icon="notifications-outline"
-                        hasSwitch
-                        switchValue={notifications}
-                        onSwitchChange={setNotifications}
-                    />
-                    <SettingItem 
-                        label="Location Services" 
-                        icon="location-outline"
-                        hasSwitch
-                        switchValue={location}
-                        onSwitchChange={setLocation}
-                    />
-                </SettingSection>
-
-                {/* Discovery Section */}
-                <SettingSection title="Discovery Settings">
-                    <SettingItem 
-                        label="Show My Profile" 
-                        icon="eye-outline"
-                        hasSwitch
-                        switchValue={true}
-                    />
-                    <SettingItem 
-                        label="Show My Distance" 
-                        icon="navigate-outline"
-                        hasSwitch
-                        switchValue={true}
-                    />
-                    <SettingItem 
-                        label="Show My Age" 
-                        icon="calendar-outline"
-                        hasSwitch
-                        switchValue={true}
-                    />
-                </SettingSection>
-
-                {/* Support Section */}
-                <SettingSection title="Support">
-                    <SettingItem 
-                        label="Help Center" 
-                        icon="help-circle-outline"
-                        onPress={() => {}}
-                    />
-                    <SettingItem 
-                        label="Contact Us" 
-                        icon="chatbubbles-outline"
-                        onPress={() => {}}
-                    />
-                    <SettingItem 
-                        label="Privacy Policy" 
-                        icon="shield-checkmark-outline"
-                        onPress={() => {}}
-                    />
-                    <SettingItem 
-                        label="Terms of Service" 
-                        icon="document-text-outline"
-                        onPress={() => {}}
-                    />
-                </SettingSection>
-
-                {/* Logout Button */}
-                <TouchableOpacity style={styles.logoutButton} onPress={() => {}}>
-                    <Ionicons name="log-out-outline" size={20} color="#DC2626" style={styles.logoutIcon} />
-                    <Text style={styles.logoutText}>Log Out</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.versionText}>App Version 1.0.0</Text>
-            </ScrollView>
-        </SafeAreaView>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={theme.colors.background}
+        />
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator
+            animating
+            size="large"
+            color={theme.colors.primary}
+          />
+          <Text
+            variant="bodyLarge"
+            style={{
+              marginTop: 12,
+              color: theme.colors.onSurface,
+              fontFamily: theme.fonts.bodyLarge.fontFamily,
+            }}
+          >
+            Loading settings...
+          </Text>
+        </View>
+      </SafeAreaView>
     );
-}
+  }
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingBottom: 40,
-    },
-    header: {
-        backgroundColor: '#FFFFFF',
-        paddingTop: Platform.OS === 'ios' ? 0 : StatusBar.currentHeight,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        paddingTop: Platform.OS === 'ios' ? 10 : 16,
-    },
-    backButton: {
-        padding: 8,
-        marginRight: 8,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    section: {
-        marginBottom: 24,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        marginHorizontal: 16,
-        overflow: 'hidden',
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#6B7280',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        padding: 16,
-        paddingBottom: 8,
-    },
-    sectionContent: {
-        borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-    },
-    settingItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    settingItemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    settingIcon: {
-        marginRight: 12,
-        width: 24,
-        textAlign: 'center',
-    },
-    settingText: {
-        fontSize: 16,
-        color: '#111827',
-        fontWeight: '500',
-    },
-    dangerItem: {
-        borderLeftWidth: 3,
-        borderLeftColor: Colors.light.error,
-    },
-    dangerText: {
-        color: Colors.light.error,
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#FEE2E2',
-        marginHorizontal: 16,
-        padding: 16,
-        borderRadius: 12,
-        marginTop: 8,
-        marginBottom: 24,
-    },
-    logoutIcon: {
-        marginRight: 8,
-    },
-    logoutText: {
-        color: '#DC2626',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    versionText: {
-        textAlign: 'center',
-        color: '#9CA3AF',
-        fontSize: 14,
-        marginTop: 8,
-    },
-});
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={theme.colors.background}
+      />
+
+      {/* Header */}
+      <Header title="Settings" />
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Account Section */}
+        <SettingSection title="Account">
+          <SettingItem
+            label="Edit Profile"
+            icon="person-outline"
+            onPress={() => {
+              router.push("/edit-profile");
+            }}
+          />
+          <SettingItem
+            label="Delete Account"
+            icon="trash-outline"
+            onPress={() => {
+              onToggleSnackBar();
+            }}
+            isDanger
+          />
+        </SettingSection>
+
+        {/* Preferences Section */}
+        <SettingSection title="Preferences">
+          <SettingItem
+            label="Dark Mode"
+            icon="moon-outline"
+            hasSwitch
+            switchValue={darkMode}
+            onSwitchChange={(v) => {
+              setDarkMode(v);
+              handleSave();
+            }}
+          />
+          <SettingItem
+            label="Push Notifications"
+            icon="notifications-outline"
+            hasSwitch
+            switchValue={notifications}
+            onSwitchChange={(v) => {
+              setNotifications(v);
+              handleSave();
+            }}
+          />
+        </SettingSection>
+
+        {/* Discovery Section */}
+        <SettingSection title="Discovery Settings">
+          <SettingItem
+            label="Show My Distance"
+            icon="navigate-outline"
+            hasSwitch
+            switchValue={showDistance}
+            onSwitchChange={(v) => {
+              setShowDistance(v);
+              handleSave();
+            }}
+          />
+          <SettingItem
+            label="Show My Age"
+            icon="calendar-outline"
+            hasSwitch
+            switchValue={showAge}
+            onSwitchChange={(v) => {
+              setShowAge(v);
+              handleSave();
+            }}
+          />
+        </SettingSection>
+
+        {/* Support Section */}
+        <SettingSection title="Support">
+          <SettingItem
+            label="Help Center"
+            icon="help-circle-outline"
+            onPress={() => {
+              router.push("/safety-center");
+            }}
+          />
+          <SettingItem
+            label="Contact Us"
+            icon="chatbubbles-outline"
+            onPress={() => { router.push("/contact-us") }}
+          />
+          <SettingItem
+            label="Privacy Policy"
+            icon="shield-checkmark-outline"
+            onPress={() => {
+              router.push("/safety-center");
+            }}
+          />
+          <SettingItem
+            label="Terms of Service"
+            icon="document-text-outline"
+            onPress={() => {
+              router.push("/safety-center");
+            }}
+          />
+        </SettingSection>
+
+        {/* Logout Button */}
+        <TouchableRipple
+          onPress={async () => {
+            try {
+              await authService.logout();
+              router.replace("/login");
+            } catch (error) {
+              console.error("Logout error:", error);
+            }
+          }}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            marginHorizontal: 16,
+            padding: 16,
+            borderRadius: 12,
+            marginTop: 8,
+            marginBottom: 24,
+            backgroundColor: theme.colors.errorContainer,
+          }}
+          rippleColor={theme.colors.primary}
+        >
+          <>
+            <Ionicons
+              name="log-out-outline"
+              size={20}
+              color={theme.colors.error}
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              variant="bodyLarge"
+              style={{
+                color: theme.colors.error,
+                fontFamily: theme.fonts.bodyLarge.fontFamily,
+                fontSize: 16,
+                fontWeight: "600",
+              }}
+            >
+              Log Out
+            </Text>
+          </>
+        </TouchableRipple>
+
+        <Text
+          variant="bodySmall"
+          style={{
+            color: theme.colors.onSurfaceVariant,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
+            textAlign: "center",
+            fontSize: 14,
+            marginTop: 8,
+          }}
+        >
+          App Version 1.0.0
+        </Text>
+      </ScrollView>
+      <Snackbar
+        visible={visible}
+        onDismiss={onDismissSnackBar}
+        duration={3000}
+        action={{
+          label: 'OK',
+          onPress: () => {
+            onDismissSnackBar();
+          },
+        }}
+      >
+        Can not delete account now!
+      </Snackbar>
+    </SafeAreaView>
+  );
+}

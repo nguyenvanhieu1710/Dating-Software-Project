@@ -9,18 +9,21 @@ import {
     ...DefaultLight,
     colors: {
       ...DefaultLight.colors,
-      primary: "#8b5cf6",   // màu chính 
-      secondary: "#06b6d4", // màu phụ
-      tertiary: "#f59e0b",  // accent (CTA, cảnh báo nhẹ)
+      primary: "#8b5cf6",
+      secondary: "#06b6d4",
+      tertiary: "#f59e0b",
       background: "#FFFFFF",
       surface: "#F8F9FA",
       text: "#000000",
+      ripple: "#000000",
+      success: "#10B981",
+      error: "#EF4444",
     },
     fonts: {
       ...DefaultLight.fonts,
       bodyLarge: {
         ...DefaultLight.fonts.bodyLarge,
-        fontFamily: "SpaceMono", // font bạn preload ở bước 4
+        fontFamily: "SpaceMono",
       },
       titleLarge: {
         ...DefaultLight.fonts.titleLarge,
@@ -34,17 +37,28 @@ import {
     ...DefaultDark,
     colors: {
       ...DefaultDark.colors,
-      primary: "#8b5cf6",   // giữ nguyên tím chính để đồng bộ
-      secondary: "#06b6d4", // cyan cho điểm nhấn
-      tertiary: "#f59e0b",  // accent vàng
+      primary: "#8b5cf6",
+      secondary: "#06b6d4",
+      tertiary: "#f59e0b",
       background: "#121212",
       surface: "#1E1E1E",
       text: "#FFFFFF",
+      ripple: "#FFFFFF",
+      success: "#10B981",
+      error: "#EF4444",
     },
     fonts: {
       ...DefaultDark.fonts,
       bodyLarge: {
         ...DefaultDark.fonts.bodyLarge,
+        fontFamily: "SpaceMono",
+      },
+      bodyMedium: {
+        ...DefaultDark.fonts.bodyMedium,
+        fontFamily: "SpaceMono",
+      },
+      bodySmall: {
+        ...DefaultDark.fonts.bodySmall,
         fontFamily: "SpaceMono",
       },
       titleLarge: {

@@ -45,21 +45,6 @@ export default function RegisterScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      {/* Header */}
-      <Appbar.Header style={{ backgroundColor: theme.colors.primary }}>
-        <Appbar.BackAction
-          onPress={() => router.back()}
-          color={theme.colors.onPrimary}
-        />
-        <Appbar.Content
-          title="Create Account"
-          titleStyle={{
-            color: theme.colors.onPrimary,
-            fontWeight: "bold",
-          }}
-        />
-      </Appbar.Header>
-
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
         {/* Title */}
         <Text
@@ -163,12 +148,12 @@ export default function RegisterScreen() {
             style={{ marginTop: 8, borderRadius: 12 }}
             contentStyle={{ height: 56 }}
             theme={{
-                fonts: {
-                  labelLarge: {
-                    fontFamily: theme.fonts.bodyLarge.fontFamily,
-                  },
+              fonts: {
+                labelLarge: {
+                  fontFamily: theme.fonts.bodyLarge.fontFamily,
                 },
-              }}
+              },
+            }}
           >
             Register
           </Button>

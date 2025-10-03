@@ -26,7 +26,7 @@ class MatchService {
   // Get all matches for current user
   public static async getMatches(): Promise<Match[]> {
     try {
-      const matches = await apiClient.get<{ data: Match[] }>('/matches');
+      const matches = await apiClient.get<{ data: Match[] }>('/match');
       console.log('Matches:', matches.data);
       return matches.data;
     } catch (error) {
@@ -38,7 +38,7 @@ class MatchService {
   // Get a specific match by ID
   public static async getMatch(matchId: string): Promise<Match> {
     try {
-      return await apiClient.get(`/matches/${matchId}`);
+      return await apiClient.get(`/match/${matchId}`);
     } catch (error) {
       console.error('Get match error:', error);
       throw error;
@@ -48,7 +48,7 @@ class MatchService {
   // Swipe right (like) on a profile
   public static async likeProfile(targetUserId: string): Promise<{ isMatch: boolean; matchId?: string }> {
     try {
-      return await apiClient.post('/swipes', { targetUserId, action: 'like' });
+      return await apiClient.post('/swipe', { targetUserId, action: 'like' });
     } catch (error) {
       console.error('Like profile error:', error);
       throw error;

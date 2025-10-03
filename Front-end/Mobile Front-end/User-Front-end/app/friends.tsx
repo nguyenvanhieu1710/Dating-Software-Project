@@ -11,6 +11,9 @@ import {
   Text,
   useTheme,
 } from "react-native-paper";
+const defaultAvatar = require("@/assets/images/avatar.jpg");
+import Header from "@/components/header/Header";
+import ButtonFooter from "@/components/footer/ButtonFooter";
 
 interface UserItem {
   id: string;
@@ -23,38 +26,37 @@ const USERS: UserItem[] = [
   {
     id: "1",
     name: "Alex",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    avatar: defaultAvatar,
     status: "online",
   },
   {
     id: "2",
     name: "Sarah",
-    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+    avatar: defaultAvatar,
     status: "online",
   },
   {
     id: "3",
     name: "Mike",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+    avatar: defaultAvatar,
     status: "offline",
   },
   {
     id: "4",
     name: "Emma",
-    avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+    avatar: defaultAvatar,
     status: "online",
   },
   {
     id: "5",
     name: "John",
-    avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+    avatar: defaultAvatar,
     status: "offline",
   },
   { id: "6", name: "Add", avatar: null, status: "add" },
 ];
 
 const renderItem = ({ item }: { item: UserItem }) => {
-
   if (item.status === "add") {
     return (
       <Surface
@@ -68,13 +70,8 @@ const renderItem = ({ item }: { item: UserItem }) => {
           borderWidth: 1,
         }}
       >
-        <IconButton
-          icon="account-plus"
-          size={28}
-        />
-        <Text variant="labelSmall">
-          Add
-        </Text>
+        <IconButton icon="account-plus" size={28} />
+        <Text variant="labelSmall">Add</Text>
       </Surface>
     );
   }
@@ -83,7 +80,7 @@ const renderItem = ({ item }: { item: UserItem }) => {
     <Surface
       style={{ margin: 8, alignItems: "center", width: 90, elevation: 1 }}
     >
-      <Avatar.Image size={72} source={{ uri: item.avatar! }} />
+      <Avatar.Image size={72} source={item.avatar || defaultAvatar} />
       {item.status === "online" && (
         <Surface
           style={{
@@ -110,11 +107,7 @@ export default function FriendsScreen() {
 
   return (
     <Surface style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Friends" />
-        <Appbar.Action icon="cog-outline" onPress={() => {}} />
-      </Appbar.Header>
+      <Header title="Friends" />
 
       <FlatList
         ListHeaderComponent={
@@ -134,6 +127,7 @@ export default function FriendsScreen() {
                 style={{
                   textAlign: "center",
                   color: theme.colors.onSurfaceVariant,
+                  fontFamily: theme.fonts.bodyLarge.fontFamily,
                 }}
               >
                 Invite up to 3 friends to pair up on Double Date
@@ -154,7 +148,11 @@ export default function FriendsScreen() {
                 <IconButton icon="account-group-outline" size={48} />
                 <Text
                   variant="bodyMedium"
-                  style={{ textAlign: "center", marginTop: 8 }}
+                  style={{
+                    textAlign: "center",
+                    marginTop: 8,
+                    fontFamily: theme.fonts.bodyLarge.fontFamily,
+                  }}
                 >
                   You'll see your Double Date friends here
                 </Text>
@@ -166,15 +164,11 @@ export default function FriendsScreen() {
         renderItem={undefined}
       />
 
-      <Button
-        mode="contained"
+      <ButtonFooter
         icon="account-plus"
-        style={{ margin: 16, borderRadius: 12 }}
-        contentStyle={{ paddingVertical: 6 }}
+        label="Invite Friends"
         onPress={() => {}}
-      >
-        Invite Friends
-      </Button>
+      />
     </Surface>
   );
 }

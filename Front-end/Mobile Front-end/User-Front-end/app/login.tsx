@@ -18,7 +18,8 @@ import {
   Card,
   Divider,
 } from "react-native-paper";
-import AuthService, { LoginCredentials } from "../services/authService";
+import { authService } from "../services/auth.service";
+import { ILoginRequest } from "../types/auth.d";
 import { setCurrentUserId } from "../services/userApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -42,11 +43,19 @@ export default function LoginScreen() {
 
       try {
         setIsLoading(true);
-        const credentials: LoginCredentials = { email, password };
-        const authResponse = await AuthService.login(credentials);
+        const credentials: ILoginRequest = { email, password };
+
+        const errors = authService.validateLoginData(credentials);
+        if (errors.length > 0) {
+          throw new Error(errors.join(", "));
+        }
+
+        const authResponse = await authService.login(credentials);
         console.log("Login response: ", authResponse);
 
-        const token = await AsyncStorage.getItem("auth_token");
+        await authService.handleLoginSuccess(authResponse);
+
+        const token = await authService.getToken();
         console.log("Stored token exists:", !!token);
 
         if (authResponse.data && authResponse.data.user) {
@@ -78,12 +87,6 @@ export default function LoginScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <Appbar.Header style={{ backgroundColor: theme.colors.primary }}>
-        <Appbar.Content
-          title="Dating App"
-          titleStyle={{ color: theme.colors.onPrimary, fontWeight: "bold" }}
-        />
-      </Appbar.Header>
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
         <View style={{ alignItems: "center", paddingVertical: 24 }}>
           <Ionicons name="heart" size={60} color={theme.colors.primary} />
@@ -192,7 +195,7 @@ export default function LoginScreen() {
               <Button
                 mode="text"
                 onPress={() => {}}
-                style={{ alignSelf: "flex-end", marginBottom: 16 }}
+                style={{ alignSelf: "flex-end" }}
                 textColor={theme.colors.primary}
                 theme={{
                   fonts: {

@@ -1,21 +1,46 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, Text } from 'react-native';
+import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from 'react-native-paper';
+
+const tabs = [
+  {
+    name: 'index',
+    title: 'Home',
+    icon: 'flame',
+  },
+  {
+    name: 'explore',
+    title: 'Explore',
+    icon: 'compass',
+  },
+  {
+    name: 'likes',
+    title: 'Likes',
+    icon: 'heart',
+  },
+  {
+    name: 'messages',
+    title: 'Chats',
+    icon: 'chatbubbles',
+  },
+  {
+    name: 'profile',
+    title: 'Profile',
+    icon: 'person',
+  },
+];
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const theme = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#8B5CF6', // Màu tím
+        tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: '#9CA3AF', // Màu xám nhạt
         headerShown: false,
         tabBarButton: HapticTab,
@@ -42,73 +67,26 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
+          fontFamily: theme.fonts.bodyLarge.fontFamily,
         },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? "flame" : "flame-outline"} 
-              size={24} 
-              color={focused ? '#8B5CF6' : color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? "compass" : "compass-outline"} 
-              size={24} 
-              color={focused ? '#8B5CF6' : color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="likes"
-        options={{
-          title: 'Likes',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? "heart" : "heart-outline"} 
-              size={24} 
-              color={focused ? '#8B5CF6' : color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: 'Chats',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? "chatbubbles" : "chatbubbles-outline"} 
-              size={24} 
-              color={focused ? '#8B5CF6' : color} 
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? "person" : "person-outline"} 
-              size={24} 
-              color={focused ? '#8B5CF6' : color} 
-            />
-          ),
-        }}
-      />      
+      }}
+    >
+      {tabs.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? tab.icon : `${tab.icon}-outline` as any}
+                size={24}
+                color={focused ? theme.colors.primary : color}
+              />
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }

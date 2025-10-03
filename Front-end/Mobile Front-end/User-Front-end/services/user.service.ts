@@ -49,7 +49,7 @@ class UserService {
   /**
    * Get user by ID
    */
-  async getUserById(id: number): Promise<ApiResponse<UserWithProfile>> {
+  async getUserById(id: number | string): Promise<ApiResponse<UserWithProfile>> {
     return httpService.get<ApiResponse<UserWithProfile>>(
       `${this.basePath}/${id}`
     );
@@ -78,8 +78,8 @@ class UserService {
   /**
    * Get current user profile (for authenticated user)
    */
-  async getCurrentUser(): Promise<ApiResponse<UserWithProfile>> {
-    return httpService.get<ApiResponse<UserWithProfile>>(`${this.basePath}/me`);
+  async getCurrentUser(): Promise<ApiResponse<IUser>> {
+    return httpService.get<ApiResponse<IUser>>(`${this.basePath}/me`);
   }
 
   /**

@@ -1,61 +1,82 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image, SafeAreaView, StatusBar, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Colors } from '@/constants/Colors';
+import React, { useEffect } from "react";
+import { SafeAreaView, StatusBar, Platform } from "react-native";
+import { useRouter } from "expo-router";
+import { Text, Surface, useTheme } from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SplashScreen() {
-    const router = useRouter();
+  const router = useRouter();
+  const theme = useTheme();
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            router.replace('/onboarding');
-        }, 2000);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace("/onboarding");
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [router]);
 
-        return () => clearTimeout(timer);
-    }, [router]);
+  return (
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+      }}
+    >
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={theme.colors.background}
+      />
 
-    return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor={Colors.light.background} />
-            <View style={styles.container}>
-                <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop' }}
-                    style={styles.logo}
-                />
-                <Text style={styles.title}>Vibe</Text>
-                <Text style={styles.subtitle}>Find your true love</Text>
-            </View>
-        </SafeAreaView>
-    );
+      <Surface
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          paddingTop:
+            Platform.OS === "ios" ? 44 : (StatusBar.currentHeight || 0) + 24,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        {/* Heart Icon */}
+        <Surface
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: 60,
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: 24,
+            elevation: 3,
+          }}
+        >
+          <Ionicons name="heart" size={80} color={theme.colors.primary} />
+        </Surface>
+
+        {/* App Title */}
+        <Text
+          variant="displayMedium"
+          style={{
+            fontWeight: "bold",
+            color: theme.colors.primary,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
+            marginBottom: 8,
+          }}
+        >
+          Vibe
+        </Text>
+
+        {/* Subtitle */}
+        <Text
+          variant="titleMedium"
+          style={{
+            color: theme.colors.primary,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
+            textAlign: "center",
+          }}
+        >
+          Find your true love
+        </Text>
+      </Surface>
+    </SafeAreaView>
+  );
 }
-
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: Colors.light.background,
-    },
-    container: {
-        flex: 1,
-        backgroundColor: Colors.light.background,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight || 0) + 24,
-    },
-    logo: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        marginBottom: 24,
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: Colors.light.primary,
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: Colors.light.text,
-        textAlign: 'center',
-    },
-}); 

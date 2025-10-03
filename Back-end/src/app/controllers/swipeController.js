@@ -20,7 +20,7 @@ class SwipeController extends BaseController {
       ]);
 
       const { swiper_user_id, swiped_user_id, action } = req.body;
-      console.log("Swipe data:", req.body);      
+      // console.log("Swipe data:", req.body);
 
       // Kiểm tra xem đã swipe chưa
       const existingSwipe = await this.model.hasSwiped(swiper_user_id, swiped_user_id);

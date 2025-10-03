@@ -58,16 +58,16 @@ const calculateDistance = (): number => {
 };
 
 // Helper function to get current user ID
-export const getCurrentUserId = async (): Promise<number | null> => {
+export const getCurrentUserId = async (): Promise<number> => {
   try {
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) {
-      return null;
+      return 0;
     }
     return parseInt(userId, 10);
   } catch (error) {
     console.error('Error getting user ID:', error);
-    return null;
+    return 0;
   }
 };
 
@@ -109,16 +109,16 @@ const enhanceUserWithUIFields = async (user: User): Promise<User> => {
 export const getDiscoveryUsers = async (): Promise<User[]> => {
   try {
     const token = await getCurrentToken();
-    console.log('Token:', token);
+    // console.log('Token:', token);
     if (!token) {
       throw new Error('USER_NOT_LOGGED_IN');
     }
-    const response = await httpClient.get('/user/recommend', {
+    const response = await httpClient.get('/user', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-    console.log('Backend response:', response.data.data);
+    console.log('Get user response:', response.data.data);
     
     if (response.data.success && Array.isArray(response.data.data)) {
       // Get current user ID to exclude from discovery list

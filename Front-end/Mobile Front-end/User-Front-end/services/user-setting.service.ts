@@ -16,7 +16,7 @@ class UserSettingService {
   // ===== BASIC CRUD OPERATIONS =====
 
   /**
-   * Lấy tất cả settings
+   * Get all settings
    */
   async getAllSettings(
     params?: SettingQueryParams
@@ -28,14 +28,14 @@ class UserSettingService {
   }
 
   /**
-   * Lấy setting theo user ID
+   * Get setting by user ID
    */
   async getSettingsByUserId(userId: number): Promise<ApiResponse<ISetting>> {
     return httpService.get<ApiResponse<ISetting>>(`${this.basePath}/${userId}`);
   }
 
   /**
-   * Tạo setting mới
+   * Create new setting
    */
   async createSetting(
     settingData: CreateSettingRequest
@@ -44,7 +44,7 @@ class UserSettingService {
   }
 
   /**
-   * Cập nhật setting
+   * Update setting
    */
   async updateSetting(
     userId: number,
@@ -59,7 +59,7 @@ class UserSettingService {
   // ===== SPECIALIZED UPDATE OPERATIONS =====
 
   /**
-   * Cập nhật notifications
+   * Update notifications
    */
   async updateNotifications(
     userId: number,
@@ -72,7 +72,7 @@ class UserSettingService {
   }
 
   /**
-   * Cập nhật language
+   * Update language
    */
   async updateLanguage(
     userId: number,
@@ -85,7 +85,7 @@ class UserSettingService {
   }
 
   /**
-   * Cập nhật theme
+   * Update theme
    */
   async updateTheme(
     userId: number,
@@ -98,7 +98,7 @@ class UserSettingService {
   }
 
   /**
-   * Reset setting về mặc định
+   * Reset setting to default
    */
   async resetSettings(userId: number): Promise<ApiResponse<ISetting>> {
     return httpService.post<ApiResponse<ISetting>>(
@@ -110,7 +110,7 @@ class UserSettingService {
   // ===== UTILITY METHODS =====
 
   /**
-   * Build query string từ params object
+   * Build query string from params object
    */
   private buildQueryString(params?: Record<string, any>): string {
     if (!params) return "";
@@ -135,19 +135,19 @@ class UserSettingService {
 
     if ("user_id" in settingData) {
       if (!settingData.user_id || settingData.user_id <= 0) {
-        errors.push("User ID không hợp lệ");
+        errors.push("Invalid User ID");
       }
     }
 
     if (settingData.min_age !== undefined) {
       if (settingData.min_age < 18 || settingData.min_age > 100) {
-        errors.push("Tuổi tối thiểu phải từ 18 đến 100");
+        errors.push("Minimum age must be between 18 and 100");
       }
     }
 
     if (settingData.max_age !== undefined) {
       if (settingData.max_age < 18 || settingData.max_age > 100) {
-        errors.push("Tuổi tối đa phải từ 18 đến 100");
+        errors.push("Maximum age must be between 18 and 100");
       }
     }
 
@@ -156,7 +156,7 @@ class UserSettingService {
       settingData.max_age !== undefined
     ) {
       if (settingData.min_age > settingData.max_age) {
-        errors.push("Tuổi tối thiểu không được lớn hơn tuổi tối đa");
+        errors.push("Minimum age cannot be greater than maximum age");
       }
     }
 
@@ -165,7 +165,7 @@ class UserSettingService {
         settingData.max_distance_km < 1 ||
         settingData.max_distance_km > 1000
       ) {
-        errors.push("Khoảng cách tối đa phải từ 1 đến 1000 km");
+        errors.push("Maximum distance must be between 1 and 1000 km");
       }
     }
 
@@ -175,7 +175,7 @@ class UserSettingService {
     ) {
       const validGenders = ["male", "female", "other"];
       if (!validGenders.includes(settingData.preferred_gender)) {
-        errors.push("Giới tính ưa thích không hợp lệ");
+        errors.push("Invalid preferred gender");
       }
     }
 
@@ -185,35 +185,35 @@ class UserSettingService {
         (g) => !validGenders.includes(g)
       );
       if (invalidGenders.length > 0) {
-        errors.push("Danh sách show_me chứa giá trị không hợp lệ");
+        errors.push("Show_me list contains invalid values");
       }
     }
 
     if (settingData.language !== undefined) {
       const validLanguages = ["en", "vi", "ja", "ko", "zh"];
       if (!validLanguages.includes(settingData.language)) {
-        errors.push("Ngôn ngữ không hợp lệ");
+        errors.push("Invalid language");
       }
     }
 
     if (settingData.theme !== undefined) {
       const validThemes = ["light", "dark", "system"];
       if (!validThemes.includes(settingData.theme)) {
-        errors.push("Theme không hợp lệ");
+        errors.push("Invalid theme");
       }
     }
 
     if (settingData.account_type !== undefined) {
       const validAccountTypes = ["free", "premium", "gold"];
       if (!validAccountTypes.includes(settingData.account_type)) {
-        errors.push("Loại tài khoản không hợp lệ");
+        errors.push("Invalid account type");
       }
     }
 
     if (settingData.verification_status !== undefined) {
       const validStatuses = ["pending", "verified", "rejected"];
       if (!validStatuses.includes(settingData.verification_status)) {
-        errors.push("Trạng thái xác minh không hợp lệ");
+        errors.push("Invalid verification status");
       }
     }
 
@@ -238,7 +238,7 @@ class UserSettingService {
       ? this.formatRelativeTime(new Date(setting.updated_at))
       : undefined;
 
-    const ageRange = `${setting.min_age} - ${setting.max_age} tuổi`;
+    const ageRange = `${setting.min_age} - ${setting.max_age} years old`;
     const distanceDisplay = `${setting.max_distance_km} km`;
 
     const notificationCount = [
@@ -262,7 +262,7 @@ class UserSettingService {
   }
 
   /**
-   * Format relative time (e.g., "2 giờ trước")
+   * Format relative time (e.g., "2 hours ago")
    */
   private formatRelativeTime(date: Date): string {
     const now = new Date();
@@ -271,12 +271,12 @@ class UserSettingService {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMinutes < 1) return "Vừa xong";
-    if (diffMinutes < 60) return `${diffMinutes} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMinutes < 1) return "Just now";
+    if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
 
-    return date.toLocaleDateString("vi-VN");
+    return date.toLocaleDateString("en-US");
   }
 
   /**
@@ -285,7 +285,7 @@ class UserSettingService {
   public getLanguageDisplayName(language: string): string {
     const languageMap: Record<string, string> = {
       en: "English",
-      vi: "Tiếng Việt",
+      vi: "Vietnamese",
       ja: "日本語",
       ko: "한국어",
       zh: "中文",
@@ -298,9 +298,9 @@ class UserSettingService {
    */
   public getThemeDisplayName(theme: string): string {
     const themeMap: Record<string, string> = {
-      light: "Sáng",
-      dark: "Tối",
-      system: "Hệ thống",
+      light: "Light",
+      dark: "Dark",
+      system: "System",
     };
     return themeMap[theme] || theme;
   }
@@ -310,7 +310,7 @@ class UserSettingService {
    */
   public getAccountTypeDisplayName(accountType: string): string {
     const accountTypeMap: Record<string, string> = {
-      free: "Miễn phí",
+      free: "Free",
       premium: "Premium",
       gold: "Gold",
     };
@@ -322,9 +322,9 @@ class UserSettingService {
    */
   public getVerificationStatusDisplayName(status: string): string {
     const statusMap: Record<string, string> = {
-      pending: "Đang chờ",
-      verified: "Đã xác minh",
-      rejected: "Bị từ chối",
+      pending: "Pending",
+      verified: "Verified",
+      rejected: "Rejected",
     };
     return statusMap[status] || status;
   }

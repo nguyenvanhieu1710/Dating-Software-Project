@@ -1,16 +1,7 @@
 import { httpService } from "./http.service";
 import {
-  IUser,
-  ApiResponse,
-  PaginatedResponse,
-  UserQueryParams,
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "@/types/user";
-import { IProfile } from "@/types/profile"; // Assuming this exists
-import {
   IUserBlock,
-  BlockQueryParams,
+  ApiResponse,
   CreateBlockRequest,
 } from "@/types/user-block";
 
@@ -39,4 +30,4 @@ class UserBlockService {
   }
 }
 
-export default new UserBlockService();
+export const userBlockService = new UserBlockService();
