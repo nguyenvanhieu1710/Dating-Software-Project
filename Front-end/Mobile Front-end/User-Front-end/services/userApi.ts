@@ -184,14 +184,10 @@ export const getUserProfile = async (): Promise<User> => {
 };
 
 // Get other user profile
-export const getOtherUserProfile = async (userId: number): Promise<User> => {
+export const getOtherUserProfile = async (userId: string | number): Promise<User> => {
   try {
-    if (!userId) {
-      throw new Error('USER_NOT_LOGGED_IN');
-    }
-    
     const response = await httpClient.get(`/profile/by-user/${userId}`);
-    console.log('Profile of user response:', response.data);
+    // console.log('Profile of user response:', response.data);
     
     if (response.data.success && response.data.data) {
       return await enhanceUserWithUIFields(response.data.data);
@@ -203,6 +199,49 @@ export const getOtherUserProfile = async (userId: number): Promise<User> => {
     throw error;
   }
 };
+
+// Lấy profile của user còn lại trong 1 match
+export const getOtherUserProfileFromMatch = async (matchId: string | number) => {
+  try {
+    const currentUserId = await getCurrentUserId();
+    if (!currentUserId) {
+      throw new Error("USER_NOT_LOGGED_IN");
+    }
+
+    // 1. Lấy match từ backend
+    const response = await httpClient.get(`/match/users/${currentUserId}/matches/${matchId}`);
+    // console.log("Match response:", response.data.data);
+    if (!response.data.data) {
+      throw new Error("MATCH_NOT_FOUND");
+    }
+
+    const match = response.data.data;
+    const user1IdNum = Number(match.user1_id);
+    const user2IdNum = Number(match.user2_id);
+    const currentIdNum = Number(currentUserId);
+
+    // console.log("User1 ID:", user1IdNum);
+    // console.log("User2 ID:", user2IdNum);
+    // console.log("Current User ID:", currentIdNum);
+
+    // 2. Xác định user còn lại
+    let otherUserId: number;
+    if (user1IdNum === currentIdNum) {
+      otherUserId = user2IdNum;
+    } else if (user2IdNum === currentIdNum) {
+      otherUserId = user1IdNum;
+    } else {
+      throw new Error("USER_NOT_IN_MATCH");
+    }
+
+    // 3. Lấy profile của otherUser
+    return await getOtherUserProfile(otherUserId);
+  } catch (error) {
+    console.error("Error fetching other user profile from match:", error);
+    throw error;
+  }
+};
+
 
 // Update user profile
 export const updateUserProfile = async (profileData: Partial<User>): Promise<User> => {

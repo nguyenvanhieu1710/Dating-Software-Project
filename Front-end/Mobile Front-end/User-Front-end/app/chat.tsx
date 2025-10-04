@@ -10,7 +10,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import messageService, {
   Message as ApiMessage,
 } from "@/services/messageService";
-import { getOtherUserProfile } from "@/services/userApi";
+import {
+  getOtherUserProfile,
+  getOtherUserProfileFromMatch,
+  getCurrentUserId,
+} from "@/services/userApi";
+import { io, Socket } from "socket.io-client";
+import { DefaultEventsMap } from "@socket.io/component-emitter";
 
 export default function ChatScreen() {
   const { matchId } = useLocalSearchParams();
@@ -28,10 +34,13 @@ export default function ChatScreen() {
     last_seen?: string;
   } | null>(null);
   const [typingUsers, setTypingUsers] = useState<number[]>([]);
+  let socket: Socket<DefaultEventsMap, DefaultEventsMap> | null = null;
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     const loadCurrentUser = async () => {
       const userJson = await AsyncStorage.getItem("user_data");
+      // console.log("userJson: ", userJson);
       if (userJson) {
         const user = JSON.parse(userJson);
         setCurrentUserId(user.id);
@@ -66,7 +75,8 @@ export default function ChatScreen() {
   const loadOtherUserProfile = async () => {
     try {
       setLoading(true);
-      const profile = await getOtherUserProfile(6); // fake id for now
+      const profile = await getOtherUserProfileFromMatch(Number(matchId));
+      // console.log("otherUser profile: ", profile);
       setOtherUser(profile);
     } catch (error) {
       console.error("Failed to load user:", error);
@@ -83,27 +93,126 @@ export default function ChatScreen() {
     }
   };
 
+  useEffect(() => {
+    if (!currentUserId) return;
+    console.log("ChatScreen rendered at:", new Date().toISOString());
+    const socket = io(process.env.EXPO_PUBLIC_SOCKET_URL, {
+      query: { userId: currentUserId.toString() },
+      transports: ["websocket"],
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("✅ Connected:", socket.id);
+      socket.emit("join-room", { room: `user_${currentUserId}` });
+    });
+
+    // Chỉ xử lý tin nhắn từ người khác (người nhận)
+    socket.on("receive-message", (msg) => {
+      console.log("📩 Received message from other user:", msg);
+      console.log(
+        "Current matchId:",
+        matchId,
+        "Message match_id:",
+        msg.match_id
+      );
+
+      if (msg.match_id == matchId || msg.match_id === Number(matchId)) {
+        const enrichedMsg = {
+          ...msg,
+          sender: { first_name: otherUser?.first_name || "User" },
+        };
+        console.log("✅ Adding received message to state:", enrichedMsg);
+        setMessages((prev) => {
+          // Kiểm tra duplicate dựa trên id và sent_at
+          const isDuplicate = prev.some(
+            (existingMsg) =>
+              existingMsg.id === msg.id && existingMsg.sent_at === msg.sent_at
+          );
+          if (isDuplicate) {
+            console.log("⚠️ Duplicate message detected, skipping");
+            return prev;
+          }
+          return [...prev, enrichedMsg];
+        });
+        scrollToBottom();
+      }
+    });
+
+    // Xử lý tin nhắn của chính mình (người gửi)
+    socket.on("message-sent", (msg) => {
+      console.log("✅ My message saved to DB:", msg);
+      console.log(
+        "Current matchId:",
+        matchId,
+        "Message match_id:",
+        msg.match_id
+      );
+
+      if (msg.match_id == matchId || msg.match_id === Number(matchId)) {
+        const enrichedMsg = {
+          ...msg,
+          sender: { first_name: "You" },
+        };
+        console.log("✅ Adding my sent message to state:", enrichedMsg);
+        setMessages((prev) => {
+          // Kiểm tra duplicate
+          const isDuplicate = prev.some(
+            (existingMsg) =>
+              existingMsg.id === msg.id && existingMsg.sent_at === msg.sent_at
+          );
+          if (isDuplicate) {
+            console.log("⚠️ Duplicate sent message detected, skipping");
+            return prev;
+          }
+          return [...prev, enrichedMsg];
+        });
+        scrollToBottom();
+      }
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err.message);
+    });
+
+    socket.on("error", (err) => {
+      console.error("❌ Socket server error:", err);
+    });
+
+    return () => {
+      console.log("ChatScreen unmounted at:", new Date().toISOString());
+      socket.off("receive-message");
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.off("error");
+      socket.disconnect();
+      socketRef.current = null;
+      console.log("🔌 Socket disconnected");
+    };
+  }, [currentUserId, process.env.EXPO_PUBLIC_SOCKET_URL]);
+
   const handleSend = async () => {
-    if (!messageText.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        match_id: Number(matchId),
-        sender_id: currentUserId || 0,
-        content: messageText,
-        message_type: "text",
-        message_direction: "sent",
-        sent_at: new Date().toISOString(),
-        read_at: null,
-        deleted_at: null,
-        first_name: "You",
-        dob: "",
-        gender: "",
-      },
-    ]);
+    if (!messageText.trim() || !currentUserId || !matchId || !socketRef.current)
+      return;
+
+    const newMessage = {
+      match_id: Number(matchId),
+      sender_id: currentUserId,
+      content: messageText,
+      message_type: "text",
+    };
+
     setMessageText("");
     scrollToBottom();
+
+    try {
+      console.log("🚀 Sending message:", newMessage);
+      // Chỉ emit tin nhắn, việc hiển thị sẽ được xử lý trong useEffect khi nhận message-sent
+      socketRef.current.emit("send-message", newMessage);
+    } catch (err) {
+      console.error("❌ Failed to send:", err);
+    }
   };
 
   if (loading) {
@@ -124,11 +233,20 @@ export default function ChatScreen() {
         renderItem={({ item }) => (
           <MessageBubble
             content={item.content}
-            senderName={item.sender?.first_name}
-            time={new Date(item.sent_at).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            senderName={
+              item.sender?.first_name ||
+              (item.sender_id === currentUserId
+                ? "You"
+                : otherUser?.first_name || "User")
+            }
+            time={
+              item.sent_at
+                ? new Date(item.sent_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""
+            }
             isOwnMessage={item.sender_id === currentUserId}
           />
         )}
@@ -136,6 +254,9 @@ export default function ChatScreen() {
         contentContainerStyle={{ padding: 8 }}
         onContentSizeChange={scrollToBottom}
         onLayout={scrollToBottom}
+        style={{
+          backgroundColor: "#fff",
+        }}
       />
 
       {typingUsers.length > 0 && (

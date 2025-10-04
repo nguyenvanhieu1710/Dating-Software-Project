@@ -1,7 +1,6 @@
 const BaseController = require("./BaseController");
 const MessageModel = require("../models/messageModel");
 const MatchModel = require("../models/matchModel");
-const redisManager = require("../../config/redis");
 
 class MessageController extends BaseController {
   constructor() {
@@ -72,9 +71,12 @@ class MessageController extends BaseController {
       const responseData = { ...message, sender: senderProfile };
 
       if (this.socketManager) {
-        this.socketManager.broadcastMessage(match_id, responseData);
+        try {
+          this.socketManager.broadcastMessage(match_id, responseData);
+        } catch (error) {
+          console.error("Error broadcasting message:", error);
+        }
       }
-      await redisManager.invalidateMessageCache(match_id);
 
       res.status(201).json({
         success: true,
@@ -215,16 +217,12 @@ class MessageController extends BaseController {
           .status(403)
           .json({ success: false, message: "Not part of this match" });
 
-      let messages = await redisManager.getCachedMessages(matchId);
-      if (!messages) {
-        messages = await this.model.getMessagesByMatchId(
-          matchId,
-          userId,
-          limit,
-          offset
-        );
-        await redisManager.cacheMessages(matchId, messages);
-      }
+      const messages = await this.model.getMessagesByMatchId(
+        matchId,
+        userId,
+        limit,
+        offset
+      );
       res.json({
         success: true,
         data: messages,

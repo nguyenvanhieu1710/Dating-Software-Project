@@ -6,6 +6,11 @@ const SettingsModel = require("../models/settingsModel");
 class NotificationsController extends BaseController {
   constructor() {
     super(new NotificationModel());
+    this.socketManager = null;
+  }
+
+  setSocketManager(socketManager) {
+    this.socketManager = socketManager;
   }
 
   /**
@@ -87,15 +92,18 @@ class NotificationsController extends BaseController {
         created_at: new Date(),
       });
 
-      // Gửi push notification qua FCM
-      const FCM = require("fcm-node");
-      const fcm = new FCM(process.env.FCM_SERVER_KEY);
-      for (const device of devices) {
-        await fcm.send({
-          to: device.device_token,
-          notification: { title, body },
-          data: { notification_id: notification.id },
+      if (this.socketManager) {
+        this.socketManager.io.to(`user_${user_id}`).emit("notification", {
+          notification_id: notification.id,
+          title,
+          body,
+          data,
+          sent_at: notification.sent_at,
         });
+      } else {
+        console.warn(
+          "SocketManager not initialized, notification not sent via Socket.io"
+        );
       }
 
       res.status(201).json({

@@ -105,6 +105,24 @@ class MessageModel extends BaseModel {
   }
 
   /**
+   * Lấy user còn lại trong match (otherUserId)
+   */
+  async getOtherUserFromMatch(matchId, senderId) {
+    const sql = `
+    SELECT 
+      CASE 
+        WHEN user1_id = $2 THEN user2_id
+        ELSE user1_id
+      END as other_user_id
+    FROM matches
+    WHERE id = $1
+      AND (user1_id = $2 OR user2_id = $2)
+  `;
+    const result = await DatabaseHelper.getOne(sql, [matchId, senderId]);
+    return result ? result.other_user_id : null;
+  }
+
+  /**
    * Lấy tin nhắn của một match với pagination và optimization
    * (SELECT — không cần transaction)
    */

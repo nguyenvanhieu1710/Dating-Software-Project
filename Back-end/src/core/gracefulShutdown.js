@@ -1,4 +1,4 @@
-const setupGracefulShutdown = (server, serviceManager) => {
+const setupGracefulShutdown = (server) => {
   const gracefulShutdown = async (signal) => {
     console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
     
@@ -6,9 +6,6 @@ const setupGracefulShutdown = (server, serviceManager) => {
     server.close(() => {
       console.log('✅ HTTP server closed');
     });
-    
-    // Shutdown services
-    await serviceManager.shutdown();
     
     process.exit(0);
   };

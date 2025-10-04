@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Text, Avatar } from "react-native-paper";
+import { Card, Text, Avatar, useTheme } from "react-native-paper";
 
 type MessageBubbleProps = {
   content: string;
@@ -16,6 +16,7 @@ export default function MessageBubble({
   isOwnMessage,
   showAvatar,
 }: MessageBubbleProps) {
+  const theme = useTheme();
   return (
     <Card
       mode="contained"
@@ -29,7 +30,13 @@ export default function MessageBubble({
     >
       <Card.Content>
         {!isOwnMessage && senderName && (
-          <Text variant="labelSmall" style={{ color: "#555" }}>
+          <Text
+            variant="labelSmall"
+            style={{
+              color: "#555",
+              fontFamily: theme.fonts.bodyLarge.fontFamily,
+            }}
+          >
             {senderName}
           </Text>
         )}
@@ -38,6 +45,7 @@ export default function MessageBubble({
             color: isOwnMessage ? "#fff" : "#000",
             fontSize: 15,
             marginVertical: 2,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
           }}
         >
           {content}
@@ -47,6 +55,7 @@ export default function MessageBubble({
             fontSize: 11,
             color: isOwnMessage ? "rgba(255,255,255,0.7)" : "#666",
             textAlign: "right",
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
           }}
         >
           {time}
