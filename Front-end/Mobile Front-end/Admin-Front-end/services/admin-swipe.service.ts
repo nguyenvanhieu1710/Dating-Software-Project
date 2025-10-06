@@ -183,9 +183,9 @@ class AdminSwipeService {
    */
   public getActionDisplayName(action: string): string {
     const actionMap: Record<string, string> = {
-      like: "Thích",
-      dislike: "Không thích",
-      superlike: "Siêu thích",
+      like: "Like",
+      pass: "Pass",
+      superlike: "Super Like",
     };
     return actionMap[action] || action;
   }
@@ -196,7 +196,7 @@ class AdminSwipeService {
   public getActionIcon(action: string): string {
     const iconMap: Record<string, string> = {
       like: "heart",
-      dislike: "close",
+      pass: "close",
       superlike: "star",
     };
     return iconMap[action] || "help";
@@ -208,7 +208,7 @@ class AdminSwipeService {
   public getActionColor(action: string): string {
     const colorMap: Record<string, string> = {
       like: "#4CAF50",
-      dislike: "#F44336",
+      pass: "#F44336",
       superlike: "#2196F3",
     };
     return colorMap[action] || "#9E9E9E";

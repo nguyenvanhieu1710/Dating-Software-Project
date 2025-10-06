@@ -3,16 +3,22 @@ import { Text, StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
 import DataTable from "@/components/tables/DataTable";
 import { IModerationReport } from "@/types/moderation-report";
-import ModerationActions from "./ModerationActions";
 import { adminModerationService } from "@/services/admin-moderation.service";
+import ModerationActionButtons from "./ModerationActions";
 
 type Props = {
   reports: IModerationReport[];
   onEdit: (report: IModerationReport) => void;
   onDelete: (report: IModerationReport) => void;
+  onActionSelect?: (report: IModerationReport, action: string) => void;
 };
 
-export default function ModerationTable({ reports, onEdit, onDelete }: Props) {
+export default function ModerationTable({
+  reports,
+  onEdit,
+  onDelete,
+  onActionSelect,
+}: Props) {
   const theme = useTheme();
 
   const styles = StyleSheet.create({
@@ -82,7 +88,9 @@ export default function ModerationTable({ reports, onEdit, onDelete }: Props) {
     {
       key: "status",
       label: "Status",
-      render: (item: IModerationReport & { id: number; status_display?: string }) => (
+      render: (
+        item: IModerationReport & { id: number; status_display?: string }
+      ) => (
         <Text
           style={[
             styles.statusText,
@@ -95,18 +103,9 @@ export default function ModerationTable({ reports, onEdit, onDelete }: Props) {
     },
     {
       key: "priority",
-      label: "Priority",
+      label: "",
       render: (item: IModerationReport & { id: number }) => (
-        <Text style={styles.cellText}>{item.priority}</Text>
-      ),
-    },
-    {
-      key: "created_at",
-      label: "Created At",
-      render: (item: IModerationReport & { id: number; created_at_formatted?: string }) => (
-        <Text style={styles.cellText}>
-          {item.created_at_formatted || new Date(item.created_at).toLocaleDateString()}
-        </Text>
+        <Text style={styles.cellText}>{""}</Text>
       ),
     },
   ];
@@ -130,11 +129,22 @@ export default function ModerationTable({ reports, onEdit, onDelete }: Props) {
     };
 
     return (
-      <ModerationActions report={originalReport} onEdit={onEdit} onDelete={onDelete} />
+      <ModerationActionButtons
+        report={originalReport}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onActionSelect={(r, action) => {
+          onActionSelect?.(r, action);
+        }}
+      />
     );
   };
 
   return (
-    <DataTable columns={columns} data={tableData} renderActions={renderActions} />
+    <DataTable
+      columns={columns}
+      data={tableData}
+      renderActions={renderActions}
+    />
   );
 }

@@ -100,12 +100,15 @@ class AdminMessageService {
   // ===== BASIC CRUD OPERATIONS =====
 
   /**
-   * Lấy tất cả messages với filter
+   * Lấy tất cả messages
    */
   async getAllMessages(params?: MessageQueryParams): Promise<ApiResponse<MessageWithSender[]>> {
-    const queryString = this.buildQueryString(params);
+    // const queryString = this.buildQueryString(params);
+    // return httpService.get<ApiResponse<MessageWithSender[]>>(
+    //   `${this.basePath}${queryString ? `?${queryString}` : ''}`
+    // );
     return httpService.get<ApiResponse<MessageWithSender[]>>(
-      `${this.basePath}${queryString ? `?${queryString}` : ''}`
+      `${this.basePath}`
     );
   }
 

@@ -4,11 +4,13 @@ import { FAB, Snackbar, TextInput, useTheme } from "react-native-paper";
 import ModerationTable from "@/features/moderation-report/ModerationTable";
 import ModerationDialog from "@/features/moderation-report/ModerationDialog";
 import { adminModerationService } from "@/services/admin-moderation.service";
+import { adminAuthService } from "@/services/admin-auth.service";
 import {
   IModerationReport,
   ReportQueryParams,
 } from "@/types/moderation-report";
 import PaginationControls from "@/components/paginations/TablePagination";
+import { ConfirmActionDialog } from "@/features/moderation-report/ConfirmActionDialog";
 
 // Custom hook để quản lý dữ liệu report
 const useReportData = () => {
@@ -22,20 +24,17 @@ const useReportData = () => {
     setError(null);
     try {
       const response = await adminModerationService.getAllReports(params);
-      if (
-        response.success &&
-        response.data &&
-        Array.isArray(response.data.data)
-      ) {
-        setReports(response.data.data);
-        if (response.data.pagination) {
-          setTotalPages(response.data.pagination.totalPages || 1);
-        }
+      console.log("Fetch reports response:", response);
+      if (response.success && Array.isArray(response.data)) {
+        setReports(response.data);
+        const totalRecords = response.data.length || 0;
+        const calculatedTotalPages = Math.ceil(totalRecords / 5);
+        setTotalPages(calculatedTotalPages > 0 ? calculatedTotalPages : 1);
       } else {
-        setError(response.message || "Không thể tải danh sách reports");
+        setError(response.message || "Failed to load reports");
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi tải danh sách reports");
+      setError("Failed to load reports");
       console.error("Fetch reports error:", err);
     } finally {
       setLoading(false);
@@ -76,11 +75,11 @@ const useReportOperations = (
         setReports((prev) => (response.data ? [...prev, response.data] : prev));
         return true;
       } else {
-        setError(response.message || "Không thể tạo report");
+        setError(response.message || "Failed to create report");
         return false;
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi tạo report");
+      setError("Failed to create report");
       console.error("Create report error:", err);
       return false;
     } finally {
@@ -108,11 +107,11 @@ const useReportOperations = (
         );
         return true;
       } else {
-        setError(response.message || "Không thể cập nhật report");
+        setError(response.message || "Failed to update report");
         return false;
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi cập nhật report");
+      setError("Failed to update report");
       console.error("Update report error:", err);
       return false;
     } finally {
@@ -133,16 +132,16 @@ const useReportOperations = (
             setLoading(true);
             setError(null);
             try {
-              const response = await adminModerationService.deleteReport(
-                report.id
-              );
-              if (response.success) {
-                setReports((prev) => prev.filter((r) => r.id !== report.id));
-              } else {
-                setError(response.message || "Không thể xóa report");
-              }
+              // const response = await adminModerationService.deleteReport(
+              //   report.id
+              // );
+              // if (response.success) {
+              //   setReports((prev) => prev.filter((r) => r.id !== report.id));
+              // } else {
+              //   setError(response.message || "Failed to delete report");
+              // }
             } catch (err) {
-              setError("Đã có lỗi xảy ra khi xóa report");
+              setError("Failed to delete report");
               console.error("Delete report error:", err);
             } finally {
               setLoading(false);
@@ -159,6 +158,8 @@ const useReportOperations = (
     handleDelete,
   };
 };
+
+type ActionKey = "dismiss" | "warn" | "suspend" | "ban" | "delete_content";
 
 export default function ModerationManagement() {
   const theme = useTheme();
@@ -177,6 +178,12 @@ export default function ModerationManagement() {
     setReports,
     setLoading,
     setError
+  );
+
+  // New state
+  const [confirmVisible, setConfirmVisible] = React.useState(false);
+  const [currentAction, setCurrentAction] = React.useState<ActionKey | null>(
+    null
   );
 
   // Dialog state
@@ -315,8 +322,60 @@ export default function ModerationManagement() {
           reports={paginated}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onActionSelect={(report, action) => {
+            setSelectedReport(report);
+            setCurrentAction(action as ActionKey);
+            setConfirmVisible(true);
+          }}
         />
       )}
+
+      {/* Confirm action dialog */}
+      <ConfirmActionDialog
+        visible={confirmVisible}
+        report={selectedReport}
+        action={currentAction}
+        onClose={() => setConfirmVisible(false)}
+        onConfirm={async (report, action, details) => {
+          try {
+            const currentUser = await adminAuthService.getUser();
+            const actionRes = await adminModerationService.createAction({
+              report_id: report.id,
+              action,
+              action_details: JSON.stringify(details || {}),
+              status: "completed",
+              created_by: currentUser?.id || 1,
+            });
+
+            if (!actionRes.success) throw new Error(actionRes.message);
+
+            const updateRes = await adminModerationService.updateReport(
+              report.id,
+              {
+                status: action === "dismiss" ? "dismissed" : "resolved",
+                admin_notes: details?.notes || "",
+                resolved_by: currentUser?.id || 1,
+                resolved_at: new Date().toISOString(),
+              }
+            );
+
+            if (!updateRes.success) throw new Error(updateRes.message);
+
+            setReports((prev) =>
+              prev.map((r) =>
+                r.id === report.id ? { ...r, ...updateRes.data } : r
+              )
+            );
+
+            showSnackbar(`Action "${action}" executed successfully`);
+          } catch (err: any) {
+            console.error("Moderation action error:", err);
+            showSnackbar(err.message || "Failed to execute action");
+          } finally {
+            setConfirmVisible(false);
+          }
+        }}
+      />
 
       {/* Pagination */}
       <PaginationControls
@@ -326,7 +385,7 @@ export default function ModerationManagement() {
       />
 
       {/* Add new FAB */}
-      <FAB
+      {/* <FAB
         icon="plus"
         style={{
           position: "absolute",
@@ -344,7 +403,7 @@ export default function ModerationManagement() {
             },
           },
         }}
-      />
+      /> */}
 
       {/* Add/Edit Dialog */}
       <ModerationDialog

@@ -7,6 +7,22 @@ class PhotoModel extends BaseModel {
   }
 
   /**
+   * get all photo
+   */
+  async getAllPhotos() {
+    const sql = `SELECT * FROM photos`;
+    return await DatabaseHelper.getAll(sql);
+  }
+
+  /**
+   * get photo by photoId
+   */
+  async getPhotoById(photoId) {
+    const sql = `SELECT * FROM photos WHERE id = $1`;
+    return await DatabaseHelper.getOne(sql, [photoId]);
+  }
+
+  /**
    * Lấy tất cả ảnh của user
    */
   async findByUserId(userId) {

@@ -18,13 +18,15 @@ const useMessageData = () => {
     setError(null);
     try {
       const response = await adminMessageService.getAllMessages();
+      console.log("Response of getAllMessage:", response);
+      
       if (response.success) {
         setMessages(response.data);
       } else {
-        setError(response.message || "Không thể tải danh sách messages");
+        setError(response.message || "Can not load messages");
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi tải danh sách messages");
+      setError("Can not load messages");
       console.error("Fetch messages error:", err);
     } finally {
       setLoading(false);
@@ -62,11 +64,11 @@ const useMessageOperations = (
         setMessages((prev) => [...prev, response.data]);
         return true;
       } else {
-        setError(response.message || "Không thể tạo message");
+        setError(response.message || "Can not create message");
         return false;
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi tạo message");
+      setError("Can not create message");
       console.error("Create message error:", err);
       return false;
     } finally {
@@ -89,11 +91,11 @@ const useMessageOperations = (
         );
         return true;
       } else {
-        setError(response.message || "Không thể cập nhật message");
+        setError(response.message || "Can not update message");
         return false;
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi cập nhật message");
+      setError("Can not update message");
       console.error("Update message error:", err);
       return false;
     } finally {
@@ -103,12 +105,12 @@ const useMessageOperations = (
 
   const handleDelete = async (message: IMessage) => {
     Alert.alert(
-      "Xác nhận xóa",
-      `Bạn có chắc chắn muốn xóa message #${message.id}?`,
+      "Confirm delete",
+      `Are you sure you want to delete message #${message.id}?`,
       [
-        { text: "Hủy", style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         {
-          text: "Xóa",
+          text: "Delete",
           style: "destructive",
           onPress: async () => {
             setLoading(true);
@@ -120,10 +122,10 @@ const useMessageOperations = (
               if (response.success) {
                 setMessages((prev) => prev.filter((m) => m.id !== message.id));
               } else {
-                setError(response.message || "Không thể xóa message");
+                setError(response.message || "Can not delete message");
               }
             } catch (err) {
-              setError("Đã có lỗi xảy ra khi xóa message");
+              setError("Can not delete message");
               console.error("Delete message error:", err);
             } finally {
               setLoading(false);

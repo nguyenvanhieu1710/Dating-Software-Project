@@ -50,6 +50,7 @@ export interface IModerationAction {
     report_id: number;
     action: string;
     action_details?: string;
+    status?: string;
     assigned_to?: number;
     created_by: number;
   }

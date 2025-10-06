@@ -45,7 +45,7 @@ router.post(
   (req, res) => messageController.createMessage(req, res) // thay vì sendMessage
 );
 
-// Lấy tất cả tin nhắn (có thể filter qua query: ?matchId=123)
+// Lấy tất cả tin nhắn
 router.get("/", (req, res) => messageController.getAllMessages(req, res));
 
 // Lấy chi tiết 1 tin nhắn

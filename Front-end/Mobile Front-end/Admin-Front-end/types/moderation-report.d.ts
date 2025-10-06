@@ -66,6 +66,7 @@ export interface IModerationReport {
     priority?: string;
     admin_notes?: string;
     resolved_by?: number;
+    resolved_at?: string;
   }
   
   // Search response type for reports

@@ -23,10 +23,10 @@ const useSwipeData = () => {
         setSwipes(response.data);
         setTotalPages(response.pagination.totalPages);
       } else {
-        setError(response.message || "Không thể tải danh sách swipes");
+        setError(response.message || "Cant not load swipes");
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi tải danh sách swipes");
+      setError("Cant not load swipes");
       console.error("Fetch swipes error:", err);
     } finally {
       setLoading(false);
@@ -64,11 +64,11 @@ const useSwipeOperations = (
         setSwipes((prev) => [...prev, response.data.swipe]);
         return true;
       } else {
-        setError(response.message || "Không thể tạo swipe");
+        setError(response.message || "Cant not create swipe");
         return false;
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi tạo swipe");
+      setError("Cant not create swipe");
       console.error("Create swipe error:", err);
       return false;
     } finally {
@@ -91,11 +91,11 @@ const useSwipeOperations = (
         );
         return true;
       } else {
-        setError(response.message || "Không thể cập nhật swipe");
+        setError(response.message || "Cant not update swipe");
         return false;
       }
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi cập nhật swipe");
+      setError("Cant not update swipe");
       console.error("Update swipe error:", err);
       return false;
     } finally {
@@ -105,12 +105,12 @@ const useSwipeOperations = (
 
   const handleDelete = async (swipe: ISwipe) => {
     Alert.alert(
-      "Xác nhận xóa",
-      `Bạn có chắc chắn muốn xóa swipe #${swipe.id}?`,
+      "Confirm delete",
+      `Are you sure you want to delete swipe #${swipe.id}?`,
       [
-        { text: "Hủy", style: "cancel" },
+        { text: "Cancel", style: "cancel" },
         {
-          text: "Xóa",
+          text: "Delete",
           style: "destructive",
           onPress: async () => {
             setLoading(true);
@@ -123,10 +123,10 @@ const useSwipeOperations = (
               if (response.success) {
                 setSwipes((prev) => prev.filter((s) => s.id !== swipe.id));
               } else {
-                setError(response.message || "Không thể xóa swipe");
+                setError(response.message || "Cant not delete swipe");
               }
             } catch (err) {
-              setError("Đã có lỗi xảy ra khi xóa swipe");
+              setError("Cant not delete swipe");
               console.error("Delete swipe error:", err);
             } finally {
               setLoading(false);
@@ -180,7 +180,10 @@ export default function SwipeManagement() {
         s.id.toString().includes(searchTerm.trim()) ||
         s.swiper_user_id.toString().includes(searchTerm.trim()) ||
         s.swiped_user_id.toString().includes(searchTerm.trim()) ||
-        adminSwipeService.getActionDisplayName(s.action).toLowerCase().includes(searchTerm.trim().toLowerCase())
+        adminSwipeService
+          .getActionDisplayName(s.action)
+          .toLowerCase()
+          .includes(searchTerm.trim().toLowerCase())
     );
   }, [searchTerm, swipes]);
 
@@ -230,13 +233,13 @@ export default function SwipeManagement() {
       };
       success = await handleUpdate(updatedSwipe);
       if (success) {
-        showSnackbar("Cập nhật swipe thành công!");
+        showSnackbar("Update swipe successfully!");
         fetchSwipes({ page, limit: pageSize });
       }
     } else {
       success = await handleCreate(swipeData);
       if (success) {
-        showSnackbar("Tạo swipe thành công!");
+        showSnackbar("Create swipe successfully!");
         fetchSwipes({ page, limit: pageSize });
       }
     }

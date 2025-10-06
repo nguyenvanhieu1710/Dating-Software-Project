@@ -7,6 +7,43 @@ class PhotoController extends BaseController {
   }
 
   /**
+   * get all photo
+   */
+  async getAllPhotos(req, res) {
+    try {
+      const photos = await this.model.getAllPhotos();
+
+      res.json({
+        success: true,
+        data: photos,
+        message: "Photos retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get photos");
+    }
+  }
+
+  /**
+   * get photo by photoId
+   */
+  async getPhotoById(req, res) {
+    try {
+      const { photoId } = req.params;
+      this.validateId(photoId);
+
+      const photo = await this.model.getPhotoById(photoId);
+
+      res.json({
+        success: true,
+        data: photo,
+        message: "Photo retrieved successfully",
+      });
+    } catch (error) {
+      this.handleError(res, error, "Failed to get photo");
+    }
+  }
+
+  /**
    * Lấy tất cả ảnh của user
    */
   async getPhotosByUserId(req, res) {

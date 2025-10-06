@@ -1,46 +1,141 @@
-import * as React from "react";
-import { View, StyleSheet } from "react-native";
-import PrimaryButton from "@/components/buttons/PrimaryButton";
+// ModerationActionButtons.tsx
+import React from "react";
+import { View } from "react-native";
+import { Button, IconButton, useTheme } from "react-native-paper";
 import { IModerationReport } from "@/types/moderation-report";
+
+type ActionKey =
+  | "dismiss"
+  | "warn"
+  | "suspend"
+  | "ban"
+  | "delete_content"
+  | "edit"
+  | "delete";
 
 type Props = {
   report: IModerationReport;
-  onEdit: (report: IModerationReport) => void;
-  onDelete: (report: IModerationReport) => void;
+  onActionSelect?: (report: IModerationReport, action: ActionKey) => void;
+  onEdit?: (report: IModerationReport) => void;
+  onDelete?: (report: IModerationReport) => void;
+  compact?: boolean; // optional layout tweak
 };
 
-const ModerationActions = ({ report, onEdit, onDelete }: Props) => {
-  const styles = StyleSheet.create({
-    actionContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 8,
-      paddingHorizontal: 8,
-      flexWrap: "wrap",
-    },
-    actionButton: {
-      minWidth: 60,
-    },
-  });
+export default function ModerationActionButtons({
+  report,
+  onActionSelect,
+  onEdit,
+  onDelete,
+  compact = true,
+}: Props) {
+  const theme = useTheme();
+
+  // Disable destructive actions if report already resolved or dismissed
+  const isImmutable =
+    report?.status === "resolved" || report?.status === "dismissed";
+
+  const btnBaseStyle = {
+    minWidth: compact ? 64 : 96,
+    marginRight: 8,
+    borderRadius: 8,
+  } as const;
 
   return (
-    <View style={styles.actionContainer}>
-      <PrimaryButton
-        title="Edit"
-        onPress={() => onEdit(report)}
-        mode="contained"
-        size="small"
-        style={styles.actionButton}
-      />
-      <PrimaryButton
-        title="Delete"
-        onPress={() => onDelete(report)}
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        flexWrap: "wrap",
+      }}
+    >
+      {/* Edit (opens dialog) */}
+      <Button
+        mode="outlined"
+        onPress={() => onEdit?.(report)}
+        contentStyle={{ paddingVertical: 6 }}
+        style={{ ...btnBaseStyle }}
+        compact={compact}
+        accessibilityLabel={`Edit report ${report.id}`}
+      >
+        Edit
+      </Button>
+
+      {/* Dismiss (soft) */}
+      <Button
         mode="text"
-        size="small"
-        style={[styles.actionButton, { minWidth: 50 }]}
+        onPress={() => onActionSelect?.(report, "dismiss")}
+        disabled={isImmutable}
+        contentStyle={{ paddingVertical: 6 }}
+        style={{ ...btnBaseStyle }}
+        compact={compact}
+        accessibilityLabel={`Dismiss report ${report.id}`}
+      >
+        Dismiss
+      </Button>
+
+      {/* Warn */}
+      <Button
+        mode="contained"
+        onPress={() => onActionSelect?.(report, "warn")}
+        disabled={isImmutable}
+        contentStyle={{ paddingVertical: 6 }}
+        style={{ ...btnBaseStyle }}
+        compact={compact}
+        accessibilityLabel={`Warn user for report ${report.id}`}
+      >
+        Warn
+      </Button>
+
+      {/* Suspend */}
+      <Button
+        mode="contained"
+        onPress={() => onActionSelect?.(report, "suspend")}
+        disabled={isImmutable}
+        contentStyle={{ paddingVertical: 6 }}
+        style={{ ...btnBaseStyle }}
+        compact={compact}
+        accessibilityLabel={`Suspend user for report ${report.id}`}
+      >
+        Suspend
+      </Button>
+
+      {/* Ban (destructive styling) */}
+      <Button
+        mode="contained"
+        onPress={() => onActionSelect?.(report, "ban")}
+        disabled={isImmutable}
+        contentStyle={{ paddingVertical: 6 }}
+        style={{
+          ...btnBaseStyle,
+          backgroundColor: theme.colors.error,
+        }}
+        compact={compact}
+        accessibilityLabel={`Ban user for report ${report.id}`}
+      >
+        Ban
+      </Button>
+
+      {/* Delete content (if applicable) */}
+      <IconButton
+        icon="delete"
+        onPress={() => onActionSelect?.(report, "delete_content")}
+        disabled={isImmutable}
+        size={20}
+        style={{ marginLeft: 2 }}
+        accessibilityLabel={`Delete content for report ${report.id}`}
       />
+
+      {/* Delete report entry (admin cleanup) */}
+      {/* <Button
+        mode="text"
+        onPress={() => onDelete?.(report)}
+        contentStyle={{ paddingVertical: 6 }}
+        style={{ ...btnBaseStyle }}
+        compact={compact}
+        accessibilityLabel={`Delete report record ${report.id}`}
+      >
+        Remove
+      </Button> */}
     </View>
   );
-};
-
-export default ModerationActions;
+}

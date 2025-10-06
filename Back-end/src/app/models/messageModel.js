@@ -5,36 +5,15 @@ class MessageModel extends BaseModel {
   constructor() {
     super("messages", "id");
   }
-
+  
   /**
-   * Lấy tất cả tin nhắn của user (có filter matchId, pagination)
+   * get all message
    */
-  async getAllMessages(
-    userId,
-    { matchId = null, limit = 50, offset = 0 } = {}
-  ) {
-    let sql = `
-        SELECT 
-          m.*,
-          p.first_name, p.dob, p.gender,
-          CASE WHEN m.sender_id = $1 THEN 'sent' ELSE 'received' END as message_direction
-        FROM messages m
-        JOIN matches mt ON m.match_id = mt.id
-        JOIN profiles p ON m.sender_id = p.user_id
-        WHERE (mt.user1_id = $1 OR mt.user2_id = $1)
-          AND m.deleted_at IS NULL
-      `;
-    const params = [userId];
-
-    if (matchId) {
-      sql += ` AND m.match_id = $2`;
-      params.push(matchId);
-    }
-
-    sql += ` ORDER BY m.sent_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, offset);
-
-    return await DatabaseHelper.getAll(sql, params);
+  async getAllMessages() {
+    const sql = `
+      SELECT * FROM messages
+    `;
+    return await DatabaseHelper.getAll(sql);
   }
 
   /**

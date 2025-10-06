@@ -33,6 +33,8 @@ router.get("/by-user/:userId", (req, res) =>
 );
 
 // Generic routes after specific ones
+router.get("/", (req, res) => photoController.getAllPhotos(req, res));
+router.get("/:photoId", (req, res) => photoController.getPhotoById(req, res));
 router.post("/", (req, res) => photoController.addPhoto(req, res));
 router.post("/multiple", (req, res) =>
   photoController.uploadMultiplePhotos(req, res)

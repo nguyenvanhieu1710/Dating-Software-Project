@@ -7,7 +7,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import {
-  Appbar,
   Button,
   Card,
   Divider,
@@ -15,12 +14,13 @@ import {
   TextInput,
   useTheme,
 } from "react-native-paper";
+import { authService } from "@/services/auth.service";
 
 export default function RegisterScreen() {
   const router = useRouter();
   const theme = useTheme();
 
-  const [name, setName] = useState("");
+  const [phone_number, setPhone_number] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -28,16 +28,32 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleRegister = () => {
-    if (!name || !email || !password || !confirm) {
+  const handleRegister = async () => {
+    if (!email || !password || !confirm || !phone_number) {
       return Alert.alert("Error", "Please fill in all fields");
     }
     if (password !== confirm) {
       return Alert.alert("Error", "Passwords do not match");
     }
-    // Giả lập đăng ký thành công
-    Alert.alert("Success", "Account created successfully!");
-    router.replace("/login");
+    try {
+      setIsLoading(true);
+      const response = await authService.register({
+        email,
+        password,
+        phone_number
+      });
+      if (response.success) {
+        Alert.alert("Success", "Account created successfully!");        
+        router.replace("/login");
+      } else {
+        Alert.alert("Error", "Failed to create account");
+      }
+    } catch (error) {
+      console.error("Error registering:", error);
+      Alert.alert("Error", "Failed to create account");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -77,11 +93,11 @@ export default function RegisterScreen() {
         {/* Form */}
         <Card style={{ padding: 16, backgroundColor: theme.colors.surface }}>
           <TextInput
-            label="Name"
-            value={name}
-            onChangeText={setName}
+            label="Phone Number"
+            value={phone_number}
+            onChangeText={setPhone_number}
             mode="outlined"
-            left={<TextInput.Icon icon="account" />}
+            left={<TextInput.Icon icon="phone" />}
             style={{ marginBottom: 16 }}
             theme={{
               colors: { background: theme.colors.surface },

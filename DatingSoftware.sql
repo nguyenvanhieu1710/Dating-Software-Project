@@ -763,9 +763,9 @@ COMMENT ON COLUMN moderation_reports.updated_at IS 'When the report was last upd
 CREATE TABLE moderation_actions (
     id BIGSERIAL PRIMARY KEY,
     report_id BIGINT NOT NULL REFERENCES moderation_reports(id) ON DELETE CASCADE,
-    action VARCHAR(50) NOT NULL, -- approve|reject|escalate|ban_user|delete_content
+    action VARCHAR(50) NOT NULL,
     action_details JSONB,
-    status VARCHAR(50) NOT NULL, -- pending|completed|failed
+    status VARCHAR(50) NOT NULL,
     assigned_to BIGINT REFERENCES admin_users(id) ON DELETE SET NULL,
     completed_at TIMESTAMPTZ,
     error_message TEXT,
@@ -776,9 +776,9 @@ CREATE TABLE moderation_actions (
 COMMENT ON TABLE moderation_actions IS 'Tracks actions taken by moderators in response to user reports or content violations.';
 COMMENT ON COLUMN moderation_actions.id IS 'Primary key, auto-incrementing action identifier';
 COMMENT ON COLUMN moderation_actions.report_id IS 'Reference to the moderation report that triggered this action';
-COMMENT ON COLUMN moderation_actions.action IS 'Type of moderation action taken (approve/reject/escalate/ban_user/delete_content)';
+COMMENT ON COLUMN moderation_actions.action IS 'Type of moderation action taken';
 COMMENT ON COLUMN moderation_actions.action_details IS 'Additional details about the action in JSON format';
-COMMENT ON COLUMN moderation_actions.status IS 'Current status of the action (pending/completed/failed)';
+COMMENT ON COLUMN moderation_actions.status IS 'Current status of the action';
 COMMENT ON COLUMN moderation_actions.assigned_to IS 'Admin user assigned to handle this action';
 COMMENT ON COLUMN moderation_actions.completed_at IS 'When the action was completed';
 COMMENT ON COLUMN moderation_actions.error_message IS 'Error message if the action failed';

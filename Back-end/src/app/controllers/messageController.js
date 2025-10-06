@@ -117,14 +117,8 @@ class MessageController extends BaseController {
    * get all messages
    */
   async getAllMessages(req, res) {
-    try {
-      const { matchId, limit = 50, offset = 0 } = req.query;
-      const userId = req.user.userId;
-      const messages = await this.model.getAllMessages(userId, {
-        matchId,
-        limit,
-        offset,
-      });
+    try {            
+      const messages = await this.model.getAllMessages();
       res.json({
         success: true,
         data: messages,
