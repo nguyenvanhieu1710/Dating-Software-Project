@@ -69,7 +69,7 @@ export const ProfilePhoto: React.FC<ProfilePhotoProps> = ({ photos = [] }) => {
         }}
       />
       {photos.length > 1 && (
-        <>
+        <View>
           <View
             style={{
               position: "absolute",
@@ -124,7 +124,7 @@ export const ProfilePhoto: React.FC<ProfilePhotoProps> = ({ photos = [] }) => {
               />
             ))}
           </View>
-        </>
+        </View>
       )}
     </View>
   );

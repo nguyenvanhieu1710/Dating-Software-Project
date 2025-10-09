@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Header from '@/components/header/Header';
 import Tabs from './consumable/Tabs';
 import PackCard from './consumable/PackCard';
@@ -25,7 +25,7 @@ export default function ConsumableScreen() {
   const getCurrentPlans = () => consumablePlans[activeTab];
 
   return (
-    <>
+    <View>
       <Header title="Consumables" />
       <Tabs activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setSelectedPack(0); }} />
 
@@ -49,6 +49,6 @@ export default function ConsumableScreen() {
         } for ${getCurrentPlans()[selectedPack].price}`}
         onPress={() => {}}
       />
-    </>
+    </View>
   );
 }

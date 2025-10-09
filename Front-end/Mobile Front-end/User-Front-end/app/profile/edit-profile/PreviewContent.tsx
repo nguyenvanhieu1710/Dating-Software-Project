@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Image, StyleSheet } from "react-native";
+import { View, Image } from "react-native";
 import { Card, Text, Chip, useTheme } from "react-native-paper";
 
 interface PhotoItem {
@@ -57,41 +57,53 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ marginBottom: 16 }}>
       <Text
         variant="headlineMedium"
-        style={[styles.title, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}
+        style={{ fontWeight: "700", marginBottom: 20, color: "#333", fontFamily: theme.fonts.bodyLarge.fontFamily }}
       >
         Profile Preview
       </Text>
 
       {/* Basic Info Preview */}
-      <Card style={styles.section} mode="elevated">
+      <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
         <Card.Content>
           <Text
             variant="titleMedium"
-            style={[
-              styles.sectionTitle,
-              { fontFamily: theme.fonts.bodyLarge.fontFamily },
-            ]}
+            style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
           >
             Basic Information
           </Text>
-          <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+          >
             Name: {formData.first_name || "Not specified"}
           </Text>
           {formData.dob && (
-            <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+            <Text
+              variant="bodyMedium"
+              style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+            >
               Age: {calculateAge(formData.dob)} years old
             </Text>
           )}
-          <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+          >
             Gender: {formData.gender || "Not specified"}
           </Text>
-          <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+          >
             Email: {formData.email || "Not specified"}
           </Text>
-          <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+          >
             Phone: {formData.phone_number || "Not specified"}
           </Text>
         </Card.Content>
@@ -99,22 +111,37 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Photos Preview */}
       {photos.length > 0 && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+            <Text
+              variant="titleMedium"
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
+            >
               Photos ({photos.length})
             </Text>
-            <View style={styles.photosContainer}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {photos.slice(0, 3).map((photo, index) => (
                 <Image
                   key={index}
                   source={{ uri: photo.url }}
-                  style={styles.photo}
+                  style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: "#F0F0F0" }}
                 />
               ))}
               {photos.length > 3 && (
-                <View style={styles.photoMore}>
-                  <Text variant="bodySmall" style={[styles.photoMoreText, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+                <View
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 8,
+                    backgroundColor: "#F3F4F6",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    variant="bodySmall"
+                    style={{ color: "#6B7280", fontWeight: "500", fontFamily: theme.fonts.bodyLarge.fontFamily }}
+                  >
                     +{photos.length - 3} more
                   </Text>
                 </View>
@@ -126,18 +153,18 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Bio Preview */}
       {formData.bio && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
             <Text
               variant="titleMedium"
-              style={[
-                styles.sectionTitle,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               About Me
             </Text>
-            <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+            <Text
+              variant="bodyMedium"
+              style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+            >
               {formData.bio}
             </Text>
           </Card.Content>
@@ -146,29 +173,35 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Professional Info Preview */}
       {(formData.job_title || formData.company || formData.school) && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
             <Text
               variant="titleMedium"
-              style={[
-                styles.sectionTitle,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Professional Information
             </Text>
             {formData.job_title && (
-              <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+              <Text
+                variant="bodyMedium"
+                style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 Job: {formData.job_title}
               </Text>
             )}
             {formData.company && (
-              <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+              <Text
+                variant="bodyMedium"
+                style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 Company: {formData.company}
               </Text>
             )}
             {formData.school && (
-              <Text variant="bodyMedium" style={[styles.text, { fontFamily: theme.fonts.bodyLarge.fontFamily }]}>
+              <Text
+                variant="bodyMedium"
+                style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 School: {formData.school}
               </Text>
             )}
@@ -178,20 +211,21 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Interests Preview */}
       {selectedInterests.length > 0 && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
             <Text
               variant="titleMedium"
-              style={[
-                styles.sectionTitle,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Interests
             </Text>
-            <View style={styles.chipsContainer}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
               {selectedInterests.map((interest) => (
-                <Chip key={interest} style={styles.chip} mode="outlined">
+                <Chip
+                  key={interest}
+                  style={{ marginRight: 8, marginBottom: 8 }}
+                  mode="outlined"
+                >
                   {interest}
                 </Chip>
               ))}
@@ -202,20 +236,21 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Goals Preview */}
       {selectedGoals.length > 0 && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
             <Text
               variant="titleMedium"
-              style={[
-                styles.sectionTitle,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Relationship Goals
             </Text>
-            <View style={styles.chipsContainer}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
               {selectedGoals.map((goal) => (
-                <Chip key={goal} style={styles.chip} mode="outlined">
+                <Chip
+                  key={goal}
+                  style={{ marginRight: 8, marginBottom: 8 }}
+                  mode="outlined"
+                >
                   {goal}
                 </Chip>
               ))}
@@ -226,50 +261,35 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Account Status Preview */}
       {userData && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
             <Text
               variant="titleMedium"
-              style={[
-                styles.sectionTitle,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Account Status
             </Text>
             <Text
               variant="bodyMedium"
-              style={[
-                styles.text,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Status: {userData.user_status || "Unknown"}
             </Text>
             <Text
               variant="bodyMedium"
-              style={[
-                styles.text,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Verified: {userData.is_verified ? "Yes" : "No"}
             </Text>
             <Text
               variant="bodyMedium"
-              style={[
-                styles.text,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Popularity Score: {userData.popularity_score || 0}
             </Text>
             <Text
               variant="bodyMedium"
-              style={[
-                styles.text,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Member Since: {formatDate(userData.created_at || "")}
             </Text>
@@ -279,24 +299,18 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
 
       {/* Privacy Settings Preview */}
       {(formData.hideAge || formData.hideDistance) && (
-        <Card style={styles.section} mode="elevated">
+        <Card style={{ marginBottom: 12, backgroundColor: "#FFFFFF" }} mode="elevated">
           <Card.Content>
             <Text
               variant="titleMedium"
-              style={[
-                styles.sectionTitle,
-                { fontFamily: theme.fonts.bodyLarge.fontFamily },
-              ]}
+              style={{ fontWeight: "600", marginBottom: 8, color: "#666", fontFamily: theme.fonts.bodyLarge.fontFamily }}
             >
               Privacy Settings
             </Text>
             {formData.hideAge && (
               <Text
                 variant="bodyMedium"
-                style={[
-                  styles.text,
-                  { fontFamily: theme.fonts.bodyLarge.fontFamily },
-                ]}
+                style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
               >
                 Hide My Age: Yes
               </Text>
@@ -304,10 +318,7 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
             {formData.hideDistance && (
               <Text
                 variant="bodyMedium"
-                style={[
-                  styles.text,
-                  { fontFamily: theme.fonts.bodyLarge.fontFamily },
-                ]}
+                style={{ color: "#333", lineHeight: 22, marginBottom: 4, fontFamily: theme.fonts.bodyLarge.fontFamily }}
               >
                 Hide My Distance: Yes
               </Text>
@@ -316,14 +327,11 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
         </Card>
       )}
 
-      <Card style={styles.footer} mode="outlined">
+      <Card style={{ marginTop: 20, borderColor: "#eee" }} mode="outlined">
         <Card.Content>
           <Text
             variant="bodySmall"
-            style={[
-              styles.footerText,
-              { fontFamily: theme.fonts.bodyLarge.fontFamily },
-            ]}
+            style={{ color: "#888", textAlign: "center", lineHeight: 18, fontFamily: theme.fonts.bodyLarge.fontFamily }}
           >
             Review your profile information before saving. Changes will be
             visible to other users after saving.
@@ -333,68 +341,3 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
-  title: {
-    fontWeight: "700",
-    marginBottom: 20,
-    color: "#333",
-  },
-  section: {
-    marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  sectionTitle: {
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#666",
-  },
-  text: {
-    color: "#333",
-    lineHeight: 22,
-    marginBottom: 4,
-  },
-  photosContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    backgroundColor: "#F0F0F0",
-  },
-  photoMore: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    backgroundColor: "#F3F4F6",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  photoMoreText: {
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  chipsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  chip: {
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  footer: {
-    marginTop: 20,
-    borderColor: "#eee",
-  },
-  footerText: {
-    color: "#888",
-    textAlign: "center",
-    lineHeight: 18,
-  },
-});

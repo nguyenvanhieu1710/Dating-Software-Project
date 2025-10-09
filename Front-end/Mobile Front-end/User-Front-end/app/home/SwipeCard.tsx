@@ -94,14 +94,12 @@ const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
       >
         <Animated.View
           style={{
-            width: "100%",
-            height: "100%",
+            width: screenWidth,
+            height: screenHeight - 180,
             borderRadius: 20,
             overflow: "hidden",
             transform: [{ translateX: swipeAnim }, { rotate }],
             backgroundColor: "#000",
-            position: "relative",
-            elevation: 8,
           }}
         >
           <Image
@@ -186,7 +184,12 @@ const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
               >
                 <Ionicons name="location" size={12} color="#fff" />
                 <Text
-                  style={{ color: "#fff", fontWeight: "600", marginLeft: 6, fontFamily: theme.fonts.bodyLarge.fontFamily }}
+                  style={{
+                    color: "#fff",
+                    fontWeight: "600",
+                    marginLeft: 6,
+                    fontFamily: theme.fonts.bodyLarge.fontFamily,
+                  }}
                 >
                   Near you
                 </Text>

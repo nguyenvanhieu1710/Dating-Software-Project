@@ -1,6 +1,7 @@
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 import Geolocation from "react-native-geolocation-service";
 import { PermissionsAndroid } from "react-native";
+import * as Location from "expo-location";
 
 export interface UserLocation {
   latitude: number;
@@ -12,8 +13,8 @@ export interface UserLocation {
  * @returns Promise<boolean> - Whether location permission was granted
  */
 export const requestLocationPermission = async (): Promise<boolean> => {
-  // Web implementation
-  if (Platform.OS === 'web') {
+  // Web implementation using react-native-geolocation-service
+  if (Platform.OS === "web") {
     if (!navigator.geolocation) {
       console.warn("Geolocation not supported in this browser");
       return false;
@@ -21,30 +22,19 @@ export const requestLocationPermission = async (): Promise<boolean> => {
     return true;
   }
 
-  // iOS implementation
-  if (Platform.OS === 'ios') {
+  // Expo implementation for iOS and Android
+  if (Platform.OS === "ios" || Platform.OS === "android") {
     try {
-      const result = await Geolocation.requestAuthorization("whenInUse");
-      return result === "granted";
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      return status === "granted";
     } catch (error) {
-      console.error("Error requesting location permission:", error);
+      console.error("Error requesting location permission with Expo:", error);
       return false;
     }
   }
 
-  // Android implementation
-  if (Platform.OS === 'android') {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
-    } catch (error) {
-      console.error("Error requesting location permission:", error);
-      return false;
-    }
-  }
-
+  // Handle unsupported platforms (e.g., windows, macos)
+  console.warn(`Location services not supported on platform: ${Platform.OS}`);
   return false;
 };
 
@@ -54,13 +44,13 @@ export const requestLocationPermission = async (): Promise<boolean> => {
  */
 export const getCurrentLocation = (): Promise<UserLocation> => {
   return new Promise((resolve, reject) => {
-    // Web implementation
-    if (Platform.OS === 'web') {
+    // Web implementation using react-native-geolocation-service
+    if (Platform.OS === "web") {
       if (!navigator.geolocation) {
         reject(new Error("Geolocation is not supported by your browser"));
         return;
       }
-      
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           resolve({
@@ -71,18 +61,25 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
         (err) => reject(err),
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
-    } 
-    // Native (iOS/Android) implementation
-    else {
-      Geolocation.getCurrentPosition(
-        (pos) => {
+    }
+    // Expo implementation for iOS and Android
+    else if (Platform.OS === "ios" || Platform.OS === "android") {
+      Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+        timeInterval: 10000,
+      })
+        .then((location) => {
           resolve({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
           });
-        },
-        (err) => reject(err),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        })
+        .catch((err) => reject(err));
+    }
+    // Handle unsupported platforms (e.g., windows, macos)
+    else {
+      reject(
+        new Error(`Location services not supported on platform: ${Platform.OS}`)
       );
     }
   });

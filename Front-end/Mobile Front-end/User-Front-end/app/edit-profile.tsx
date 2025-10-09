@@ -1,17 +1,11 @@
-import {
-  View,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Platform,
-  Alert,
-} from "react-native";
+import { View, SafeAreaView, ScrollView, Platform, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import Geolocation from "react-native-geolocation-service";
 import { PermissionsAndroid } from "react-native";
+import * as Location from "expo-location";
 import {
   Appbar,
   SegmentedButtons,
@@ -21,6 +15,8 @@ import {
   useTheme,
 } from "react-native-paper";
 import { getUserProfile, updateUserProfile, User } from "../services/userApi";
+import { interestService } from "@/services/interest.service";
+import { goalService } from "@/services/goal.service";
 
 // Import components
 import { StatusBadge } from "./profile/edit-profile/StatusBadge";
@@ -32,7 +28,6 @@ import { InterestsSection } from "./profile/edit-profile/InterestsSection";
 import { GoalsSection } from "./profile/edit-profile/GoalsSection";
 import { ProfessionalInfoSection } from "./profile/edit-profile/ProfessionalInfoSection";
 import { LocationSection } from "./profile/edit-profile/LocationSection";
-import { PrivacySection } from "./profile/edit-profile/PrivacySection";
 import { PreviewContent } from "./profile/edit-profile/PreviewContent";
 
 interface PhotoItem {
@@ -61,10 +56,10 @@ export default function EditProfileScreen() {
     email: "",
     phone_number: "",
     dob: "",
-    hideAge: false,
-    hideDistance: false,
   });
 
+  const [interests, setInterests] = useState<string[]>([]);
+  const [goals, setGoals] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -120,21 +115,18 @@ export default function EditProfileScreen() {
           { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
         );
       } else {
-        const hasPerm = await requestLocationPermissionIfNeeded();
-        if (!hasPerm) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
           notify("Error", "Location permission denied");
           return;
         }
-        Geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            setFormData((prev) => ({ ...prev, location: `${lng},${lat}` }));
-            notify("Success", "Location detected and filled");
-          },
-          (error) => notify("Error", error.message),
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+          timeInterval: 10000,
+        });
+        const { latitude: lat, longitude: lng } = location.coords;
+        setFormData((prev) => ({ ...prev, location: `${lng},${lat}` }));
+        notify("Success", "Location detected and filled");
       }
     } catch (e: any) {
       notify("Error", e?.message || "Failed to get location");
@@ -144,6 +136,8 @@ export default function EditProfileScreen() {
   useEffect(() => {
     loadUserProfile();
     loadUserPhotos();
+    loadInterests();
+    loadGoals();
   }, [userId]);
 
   const loadUserProfile = async () => {
@@ -157,15 +151,13 @@ export default function EditProfileScreen() {
         first_name: profile.first_name || "",
         bio: profile.bio || "",
         job_title: profile.job_title || "",
-        company: "",
+        company: profile.company || "",
         school: profile.school || "",
         location: profile.location || "",
         gender: profile.gender || "",
         email: profile.email || "",
         phone_number: profile.phone_number || "",
         dob: profile.dob || "",
-        hideAge: false,
-        hideDistance: false,
       });
     } catch (err: any) {
       console.error("Error loading profile:", err);
@@ -184,6 +176,8 @@ export default function EditProfileScreen() {
         first_name: formData.first_name,
         bio: formData.bio,
         job_title: formData.job_title,
+        dob: formData.dob,
+        company: formData.company,
         school: formData.school,
         location: formData.location,
         gender: formData.gender,
@@ -225,8 +219,36 @@ export default function EditProfileScreen() {
     }
   };
 
+  const loadInterests = async () => {
+    try {
+      const response = await interestService.getAllInterests();
+      // console.log("Interests response:", response);
+      if (response.success && response.data && Array.isArray(response.data.data)) {
+        setInterests(response.data.data.map((item: any) => item.name));
+      } else {
+        notify("Error", "Failed to load interests from server.");
+      }
+    } catch (error) {
+      console.error("Error loading interests:", error);
+    }
+  };
+
+  const loadGoals = async () => {
+    try {
+      const response = await goalService.getAllGoals();
+      if (response.success && response.data && Array.isArray(response.data.data)) {
+        setGoals(response.data.data.map((item: any) => item.name));
+      } else {
+        notify("Error", "Failed to load goals from server.");
+      }
+    } catch (error) {
+      console.error("Error loading goals:", error);
+    }
+  };
+
   const pickImage = async () => {
     try {
+      console.log("pickImage: Started");
       const isWeb =
         typeof window !== "undefined" && typeof document !== "undefined";
 
@@ -498,23 +520,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  const interests = [
-    "Travel",
-    "Music",
-    "Sports",
-    "Reading",
-    "Cooking",
-    "Photography",
-    "Movies",
-    "Gaming",
-  ];
-  const goals = [
-    "Long-term partner",
-    "Short-term fun",
-    "New friends",
-    "Still figuring it out",
-  ];
-
   const toggleInterest = (interest: string) => {
     setSelectedInterests((prev) =>
       prev.includes(interest)
@@ -539,10 +544,21 @@ export default function EditProfileScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 60,
+            paddingHorizontal: 20,
+          }}
+        >
           <ActivityIndicator size="large" color="#8B5CF6" />
-          <Text variant="bodyLarge" style={styles.loadingText}>
+          <Text
+            variant="bodyLarge"
+            style={{ marginTop: 16, color: "#6B7280", textAlign: "center" }}
+          >
             Loading profile...
           </Text>
         </View>
@@ -552,17 +568,33 @@ export default function EditProfileScreen() {
 
   if (error && !userData) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 60,
+            paddingHorizontal: 20,
+          }}
+        >
           <Ionicons name="alert-circle" size={48} color="#EF4444" />
-          <Text variant="bodyLarge" style={styles.errorText}>
+          <Text
+            variant="bodyLarge"
+            style={{
+              marginTop: 16,
+              marginBottom: 20,
+              color: "#EF4444",
+              textAlign: "center",
+            }}
+          >
             {error}
           </Text>
           <Button
             mode="contained"
             onPress={loadUserProfile}
             buttonColor="#8B5CF6"
-            style={styles.retryButton}
+            style={{ marginTop: 8 }}
           >
             Try Again
           </Button>
@@ -572,13 +604,16 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       {/* Header */}
-      <Appbar.Header style={styles.header} elevated>
+      <Appbar.Header style={{ backgroundColor: "#FFFFFF", elevation: 1 }}>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Edit Profile" titleStyle={styles.headerTitle} />
+        <Appbar.Content
+          title="Edit Profile"
+          titleStyle={{ fontSize: 20, fontWeight: "bold" }}
+        />
         {userData && (
-          <View style={styles.headerRight}>
+          <View style={{ marginRight: 12 }}>
             <StatusBadge
               status={userData.user_status || "unknown"}
               verified={userData.is_verified || false}
@@ -588,7 +623,15 @@ export default function EditProfileScreen() {
       </Appbar.Header>
 
       {/* Tabs */}
-      <View style={styles.tabsContainer}>
+      <View
+        style={{
+          backgroundColor: "#FFFFFF",
+          paddingHorizontal: 12,
+          paddingVertical: 8,
+          borderBottomWidth: 1,
+          borderBottomColor: "#E8E8E8",
+        }}
+      >
         <SegmentedButtons
           value={activeTab}
           onValueChange={setActiveTab}
@@ -596,7 +639,7 @@ export default function EditProfileScreen() {
             { value: "edit", label: "Edit" },
             { value: "preview", label: "Preview" },
           ]}
-          style={styles.segmentedButtons}
+          style={{ backgroundColor: "#FFFFFF" }}
           theme={{
             fonts: {
               labelLarge: {
@@ -608,9 +651,12 @@ export default function EditProfileScreen() {
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1, padding: 12 }}
+        showsVerticalScrollIndicator={false}
+      >
         {activeTab === "edit" ? (
-          <>
+          <View>
             {userData && (
               <AccountInfoSection
                 userId={userData.user_id.toString()}
@@ -661,30 +707,23 @@ export default function EditProfileScreen() {
               onUseMyLocation={useMyLocation}
             />
 
-            <PrivacySection
-              hideAge={formData.hideAge}
-              hideDistance={formData.hideDistance}
-              onUpdatePrivacy={updatePrivacy}
-            />
-
             <Button
               mode="contained"
               onPress={handleSaveProfile}
               disabled={isSaving}
               loading={isSaving}
               buttonColor="#8B5CF6"
-              style={styles.saveButton}
-              contentStyle={styles.saveButtonContent}
-              labelStyle={[
-                styles.saveButtonLabel,
-                {
-                  fontFamily: theme.fonts.bodyLarge.fontFamily,
-                },
-              ]}
+              style={{ marginTop: 16, marginBottom: 32, borderRadius: 25 }}
+              contentStyle={{ paddingVertical: 8 }}
+              labelStyle={{
+                fontSize: 16,
+                fontWeight: "bold",
+                fontFamily: theme.fonts.bodyLarge.fontFamily,
+              }}
             >
               Save Changes
             </Button>
-          </>
+          </View>
         ) : (
           <PreviewContent
             formData={formData}
@@ -698,67 +737,3 @@ export default function EditProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  header: {
-    backgroundColor: "#FFFFFF",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  headerRight: {
-    marginRight: 12,
-  },
-  tabsContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8E8E8",
-  },
-  segmentedButtons: {
-    backgroundColor: "#FFFFFF",
-  },
-  content: {
-    flex: 1,
-    padding: 12,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-    paddingHorizontal: 20,
-  },
-  loadingText: {
-    marginTop: 16,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  errorText: {
-    marginTop: 16,
-    marginBottom: 20,
-    color: "#EF4444",
-    textAlign: "center",
-  },
-  retryButton: {
-    marginTop: 8,
-  },
-  saveButton: {
-    marginTop: 16,
-    marginBottom: 32,
-    borderRadius: 25,
-  },
-  saveButtonContent: {
-    paddingVertical: 8,
-  },
-  saveButtonLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});

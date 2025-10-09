@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 import ChatHeader from "./chat/ChatHeader";
 import MessageBubble from "./chat/MessageBubble";
 import TypingIndicator from "./chat/TypingIndicator";
 import ChatInput from "./chat/ChatInput";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import messageService, {
-  Message as ApiMessage,
-} from "@/services/messageService";
+import { messageService } from "@/services/message.service";
+import { IMessage } from "@/types/message";
 import {
   getOtherUserProfile,
   getOtherUserProfileFromMatch,
@@ -22,7 +21,7 @@ export default function ChatScreen() {
   const { matchId } = useLocalSearchParams();
   const flatListRef = useRef<FlatList>(null);
 
-  const [messages, setMessages] = useState<ApiMessage[]>([]);
+  const [messages, setMessages] = useState<IMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -59,10 +58,12 @@ export default function ChatScreen() {
   const loadMessages = async () => {
     try {
       setLoading(true);
-      const response = await messageService.getMessages(Number(matchId), {
+      // console.log("matchId", matchId);      
+      const response = await messageService.getMessagesByMatchId(Number(matchId), {
         limit: 50,
         offset: 0,
       });
+      // console.log("Response of getMessages:", response);      
       setMessages(response.data);
       scrollToBottom();
     } catch (error) {
@@ -215,16 +216,29 @@ export default function ChatScreen() {
     }
   };
 
+  const handleVideoPress = () => {
+    if (!otherUser || !currentUserId) return;
+    router.push({
+      pathname: "/video-call",
+      params: {
+        roomID: `room_${matchId}`,
+        userID: currentUserId,
+        userName: `User_${currentUserId}`,
+      },
+    });
+  };
+
   if (loading) {
     return <ActivityIndicator style={{ marginTop: 50 }} size="large" />;
   }
 
   return (
-    <>
+    <View>
       <ChatHeader
         name={otherUser?.first_name || "User Name"}
         isOnline={otherUser?.is_online || false}
         lastSeen={otherUser?.last_seen}
+        onVideoPress={handleVideoPress}
       />
 
       <FlatList
@@ -268,6 +282,6 @@ export default function ChatScreen() {
         onChangeText={setMessageText}
         onSend={handleSend}
       />
-    </>
+    </View>
   );
 }

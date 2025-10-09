@@ -13,7 +13,7 @@ export default function StatCard({ label, value, onPress }: Props) {
     <Card
       mode="elevated"
       onPress={onPress}
-      style={{ width: 140, borderRadius: 16 }}
+      style={{ width: 170, borderRadius: 16 }}
     >
       <Card.Content style={{ alignItems: "center", paddingVertical: 12 }}>
         {value !== undefined && (

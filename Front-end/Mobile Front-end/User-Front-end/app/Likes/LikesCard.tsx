@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, Text, useTheme } from "react-native-paper";
 import { SwipedUser } from "@/types/swipe";
+import { View } from "react-native";
 
 type Props = {
   user: SwipedUser;
@@ -20,7 +21,7 @@ export default function LikesCard({ user, isGold, calculateAge }: Props) {
       />
       <Card.Content>
         {isGold ? (
-          <>
+          <View>
             <Text variant="titleMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
               {user.first_name}, {calculateAge(user.dob!)}
             </Text>
@@ -31,7 +32,7 @@ export default function LikesCard({ user, isGold, calculateAge }: Props) {
                 {user.bio}
               </Text>
             )}
-          </>
+          </View>
         ) : (
           <Text variant="titleMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>Hidden</Text>
         )}

@@ -58,7 +58,7 @@ const ContactUsScreen = () => {
   };
 
   return (
-    <>
+    <View>
       <Header title="Contact Us" />
       <ScrollView
         style={{
@@ -156,7 +156,7 @@ const ContactUsScreen = () => {
           {snackbarMessage}
         </Snackbar>
       </ScrollView>
-    </>
+    </View>
   );
 };
 

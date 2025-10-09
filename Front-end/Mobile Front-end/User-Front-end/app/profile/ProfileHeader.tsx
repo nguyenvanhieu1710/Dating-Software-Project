@@ -1,5 +1,5 @@
 import React from "react";
-import { Appbar, Avatar, IconButton } from "react-native-paper";
+import { Appbar, Avatar, IconButton, useTheme } from "react-native-paper";
 import { View } from "react-native";
 
 type Props = {
@@ -13,25 +13,26 @@ export default function ProfileHeader({
   onSettings,
   onSafety,
 }: Props) {
+  const theme = useTheme();
   return (
     <Appbar.Header
       style={{
-        backgroundColor: "#FFF9FB",
+        backgroundColor: theme.colors.surface,
         elevation: 0,
         borderBottomWidth: 1,
-        borderBottomColor: "#F3E8FF",
+        borderBottomColor: theme.colors.background,
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
         <Avatar.Icon
           size={40}
           icon="account-circle"
-          color="#6D28D9"
-          style={{ backgroundColor: "#F3E8FF", marginRight: 12, marginLeft: 12 }}
+          color={theme.colors.primary}
+          style={{ backgroundColor: theme.colors.background, marginRight: 12, marginLeft: 12 }}
         />
         <Appbar.Content
           title={title}
-          titleStyle={{ fontSize: 20, fontWeight: "700", color: "#1F2937" }}
+          titleStyle={{ fontSize: 20, fontWeight: "700", color: "#1F2937", fontFamily: theme.fonts.bodyLarge.fontFamily }}
         />
       </View>
 

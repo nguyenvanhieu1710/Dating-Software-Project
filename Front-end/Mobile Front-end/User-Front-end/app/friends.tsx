@@ -1,5 +1,5 @@
 import React from "react";
-import { FlatList, Image } from "react-native";
+import { FlatList, Image, View } from "react-native";
 import { useRouter } from "expo-router";
 import {
   Appbar,
@@ -91,8 +91,9 @@ const renderItem = ({ item }: { item: UserItem }) => {
             height: 14,
             borderRadius: 7,
           }}
-          children={undefined}
-        />
+        >
+          <View></View>
+        </Surface>
       )}
       <Text variant="bodySmall" style={{ marginTop: 6 }} numberOfLines={1}>
         {item.name}
@@ -111,7 +112,7 @@ export default function FriendsScreen() {
 
       <FlatList
         ListHeaderComponent={
-          <>
+          <View>
             <Card style={{ margin: 16, padding: 12 }}>
               <Card.Title title="Double Date Friends" />
               <FlatList
@@ -158,7 +159,7 @@ export default function FriendsScreen() {
                 </Text>
               </Surface>
             </Card>
-          </>
+          </View>
         }
         data={undefined}
         renderItem={undefined}

@@ -62,7 +62,7 @@ export const ProfileFooter: React.FC<ProfileFooterProps> = ({
   };
 
   return (
-    <>
+    <View>
       <Surface
         style={{
           borderTopLeftRadius: 20,
@@ -173,6 +173,6 @@ export const ProfileFooter: React.FC<ProfileFooterProps> = ({
           }
         }}
       />
-    </>
+    </View>
   );
 };

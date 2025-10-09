@@ -232,11 +232,7 @@ export default function DiscoveryScreen() {
   const handleNotificationPress = (notification: INotification) => {
     // Xử lý khi user click vào notification
     // Ví dụ: navigate đến trang notification detail
-    Alert.alert(
-      notification.title,
-      notification.body,
-      [{ text: "OK" }]
-    );
+    Alert.alert(notification.title, notification.body, [{ text: "OK" }]);
   };
 
   if (isLoading) {
@@ -343,19 +339,15 @@ export default function DiscoveryScreen() {
       {/* <DistanceFilter value={maxDistance} onChange={setMaxDistance} /> */}
       <NotificationToast onPress={handleNotificationPress} />
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <View style={{ width: "100%", height: "100%" }}>
-            <SwipeCard
-              ref={swipeRef}
-              user={user}
-              photoIndex={currentPhotoIndex}
-              onPhotoNav={handlePhotoNav}
-              onOpenProfile={handleOpenProfile}
-              onSwiped={onSwiped}
-            />
-          </View>
+        <View style={{ flex: 1 }}>
+          <SwipeCard
+            ref={swipeRef}
+            user={user}
+            photoIndex={currentPhotoIndex}
+            onPhotoNav={handlePhotoNav}
+            onOpenProfile={handleOpenProfile}
+            onSwiped={onSwiped}
+          />
         </View>
 
         <ActionButtons

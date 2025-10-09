@@ -30,8 +30,9 @@ export default function OnboardingDots({
             backgroundColor: index === currentStep ? "#8B5CF6" : "#D1D5DB",
           }}
           elevation={index === currentStep ? 2 : 0}
-          children={undefined}
-        />
+        >
+          <View></View>
+        </Surface>
       ))}
     </View>
   );

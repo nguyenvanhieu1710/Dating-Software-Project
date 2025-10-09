@@ -263,7 +263,7 @@ export default function SettingsScreen() {
           }}
           rippleColor={theme.colors.primary}
         >
-          <>
+          <View>
             <Ionicons
               name="log-out-outline"
               size={20}
@@ -281,7 +281,7 @@ export default function SettingsScreen() {
             >
               Log Out
             </Text>
-          </>
+          </View>
         </TouchableRipple>
 
         <Text

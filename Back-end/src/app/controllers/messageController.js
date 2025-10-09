@@ -31,7 +31,7 @@ class MessageController extends BaseController {
 
       return null;
     } catch (error) {
-      console.error("Lỗi khi xác thực user trong match:", error);
+      console.error("Error authenticating user in match:", error);
       return null;
     }
   }
@@ -199,13 +199,8 @@ class MessageController extends BaseController {
       const { matchId } = req.params;
       const { limit = 50, offset = 0 } = req.query;
       const userId = req.user.userId;
-
-      const match = await this.validateUserInMatch(matchId, userId);
-      if (!match)
-        return res
-          .status(403)
-          .json({ success: false, message: "Not part of this match" });
-
+      // console.log(userId);      
+      // console.log("matchId:", matchId);
       const messages = await this.model.getMessagesByMatchId(
         matchId,
         userId,

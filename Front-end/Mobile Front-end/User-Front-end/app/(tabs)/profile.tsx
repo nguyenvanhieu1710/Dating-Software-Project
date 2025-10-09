@@ -10,7 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import Header from "../profile/ProfileHeader";
 import StatCard from "../profile/StatCard";
-import { UpgradeTier } from "../profile/UpgradeTier";
+import UpgradeTier from "../profile/UpgradeTier";
 import { getUserProfile, getCurrentUserId, User } from "../../services/userApi";
 import { consumableService } from "../../services/comsumable.service";
 import { IConsumable } from "../../types/consumable";
@@ -154,12 +154,12 @@ export default function ProfileScreen() {
       <Header onSettings={handleSettings} onSafety={handleSafetyCenter} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         {user ? (
-          <>
+          <View>
             <Card
               style={{
                 borderRadius: 20,
                 elevation: 0,
-                backgroundColor: "transparent",
+                backgroundColor: theme.colors.surface,
               }}
             >
               <Card.Content style={{ alignItems: "center" }}>
@@ -318,7 +318,7 @@ export default function ProfileScreen() {
                 </Card.Content>
               </Card>
             </View>
-          </>
+          </View>
         ) : (
           <View
             style={{

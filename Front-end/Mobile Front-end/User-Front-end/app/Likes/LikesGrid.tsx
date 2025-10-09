@@ -1,5 +1,5 @@
 import React from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 import LikesCard from "./LikesCard";
 import { SwipedUser } from "@/types/swipe";
 
@@ -11,7 +11,7 @@ type Props = {
 
 export default function LikesGrid({ users, isGold, calculateAge }: Props) {
   return (
-    <>
+    <View>
       {isGold && (
         <FlatList
           data={users}
@@ -27,6 +27,6 @@ export default function LikesGrid({ users, isGold, calculateAge }: Props) {
           contentContainerStyle={{ alignItems: "center" }}
         />
       )}
-    </>
+    </View>
   );
 }

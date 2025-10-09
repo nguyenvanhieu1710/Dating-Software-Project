@@ -10,7 +10,7 @@ type Tier = {
   badge?: string;
 };
 
-export function UpgradeTier({
+export default function UpgradeTier({
   tier,
   onPress,
 }: {

@@ -51,16 +51,16 @@ export default function LoginScreen() {
         }
 
         const authResponse = await authService.login(credentials);
-        console.log("Login response: ", authResponse);
+        // console.log("Login response: ", authResponse);
 
         await authService.handleLoginSuccess(authResponse);
 
         const token = await authService.getToken();
-        console.log("Stored token exists:", !!token);
+        // console.log("Stored token exists:", !!token);
 
         if (authResponse.data && authResponse.data.user) {
           await setCurrentUserId(authResponse.data.user.id);
-          console.log("User ID: ", authResponse.data.user.id);
+          // console.log("User ID: ", authResponse.data.user.id);
           await AsyncStorage.setItem(
             "user_data",
             JSON.stringify(authResponse.data.user)
@@ -154,7 +154,7 @@ export default function LoginScreen() {
               }}
             />
           ) : (
-            <>
+            <View>
               <TextInput
                 label="Email"
                 value={email}
@@ -207,7 +207,7 @@ export default function LoginScreen() {
               >
                 Forgot Password?
               </Button>
-            </>
+            </View>
           )}
 
           <Button

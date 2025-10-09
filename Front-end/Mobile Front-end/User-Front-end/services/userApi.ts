@@ -16,6 +16,7 @@ export interface User {
   gender: string;
   bio: string;
   job_title: string;
+  company?: string;
   school: string;
   location: any;
   latitude?: number;    // Thêm vị trí

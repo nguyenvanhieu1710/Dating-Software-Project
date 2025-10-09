@@ -21,7 +21,8 @@ export default function RootLayout() {
 
   return (
     <PaperProvider theme={paperTheme}>
-      <Stack initialRouteName="splash">
+      <Stack initialRouteName="(tabs)">
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="splash" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -38,7 +39,7 @@ export default function RootLayout() {
         <Stack.Screen name="consumable" options={{ headerShown: false }} />
         <Stack.Screen name="contact-us" options={{ headerShown: false }} />
         <Stack.Screen name="notification" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="video-call" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

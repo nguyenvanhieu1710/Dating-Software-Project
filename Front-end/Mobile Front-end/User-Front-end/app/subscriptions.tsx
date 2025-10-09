@@ -116,12 +116,21 @@ export default function SubscriptionsScreen() {
         contentContainerStyle={{ padding: 20 }}
       >
         {getCurrentPlan().features.map((feature, index) => (
-          <FeatureCard key={index} {...feature} />
+          <FeatureCard
+            key={index}
+            icon={feature.icon}
+            title={feature.title}
+            description={feature.description}
+          />
         ))}
       </ScrollView>
 
       {/* Footer */}
-      <ButtonFooter label="Subscribe for" price={getCurrentPlan().price} onPress={() => console.log("Subscribe")} />
+      <ButtonFooter
+        label="Subscribe for"
+        price={getCurrentPlan().price}
+        onPress={() => console.log("Subscribe")}
+      />
     </Surface>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, Text } from "react-native-paper";
-import { Image } from "react-native";
+import { Image, View } from "react-native";
 import { useTheme } from "react-native-paper";
 
 type OnboardingStepProps = {
@@ -17,12 +17,22 @@ export default function OnboardingStep({
   const theme = useTheme();
 
   return (
-    <>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Card
         mode="elevated"
-        style={{ marginBottom: 40, borderRadius: 100, overflow: "hidden" }}
+        style={{
+          marginBottom: 40,
+          width: 200,
+          height: 200,
+          borderRadius: 100,
+          overflow: "hidden",
+        }}
       >
-        <Image source={image} style={{ width: 200, height: 200 }} />
+        <Image
+          source={image}
+          style={{ width: 200, height: 200, borderRadius: 100 }}
+          resizeMode="cover"
+        />
       </Card>
       <Text
         variant="headlineMedium"
@@ -46,6 +56,6 @@ export default function OnboardingStep({
       >
         {subtitle}
       </Text>
-    </>
+    </View>
   );
 }

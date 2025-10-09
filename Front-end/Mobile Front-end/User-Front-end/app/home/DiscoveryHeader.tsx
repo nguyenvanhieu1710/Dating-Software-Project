@@ -15,10 +15,9 @@ export default function DiscoveryHeader() {
       elevated={false}
       style={{
         backgroundColor: theme.colors.surface,
-        paddingTop:
-          Platform.OS === "ios" ? 44 : (StatusBar.currentHeight || 0) + 8,
-        paddingBottom: 8,
-        elevation: 0,
+        paddingTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight || 0,
+        paddingBottom: 4,
+        zIndex: 10,
       }}
     >
       <Appbar.Content
@@ -38,9 +37,8 @@ export default function DiscoveryHeader() {
           value={query}
           onChangeText={setQuery}
           style={{
-            width: 170,
-            height: 36,            
-            marginRight: 8,
+            width: 150,
+            height: 36,
             borderRadius: 20,
             backgroundColor: theme.colors.surfaceVariant,
           }}
@@ -65,7 +63,11 @@ export default function DiscoveryHeader() {
 
       <Appbar.Action
         icon={() => (
-          <Ionicons name="notifications" size={20} color={theme.colors.primary} />
+          <Ionicons
+            name="notifications"
+            size={20}
+            color={theme.colors.primary}
+          />
         )}
         onPress={() => router.push("/notification")}
       />
