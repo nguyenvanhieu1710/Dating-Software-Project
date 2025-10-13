@@ -7,22 +7,28 @@ import {
   useTheme,
   ActivityIndicator,
 } from "react-native-paper";
-import { AdminPhoto } from "@/services/adminPhotoService";
+import { IPhoto } from "@/types/photo";
+import { IUser } from "@/types/user";
 
 type Props = {
-  photos: AdminPhoto[];
+  photos: IPhoto[];
+  users?: IUser[];
   isLoading?: boolean;
-  onView: (photo: AdminPhoto) => void;
-  onDelete: (photo: AdminPhoto) => void;
+  onView: (photo: IPhoto) => void;
+  onDelete: (photo: IPhoto) => void;
 };
 
 export default function PhotoGrid({
   photos,
+  users,
   isLoading = false,
   onView,
   onDelete,
 }: Props) {
   const theme = useTheme();
+
+  const numColumns = 6;
+  const cardWidth = `${100 / numColumns - 2}%`;
 
   if (isLoading) {
     return (
@@ -59,18 +65,23 @@ export default function PhotoGrid({
     );
   }
 
-  const renderItem = ({ item }: { item: AdminPhoto }) => {
+  const renderItem = ({ item }: { item: IPhoto }) => {
+    const user = users?.find((u) => u.id === item.user_id);
+
     return (
-      <Card style={{ width: "48%", marginBottom: 12 }}>
-        {/* image + badges overlay */}
+      <Card style={{ width: cardWidth, marginBottom: 12 }}>
+        {/* image + public overlay */}
         <View style={{ position: "relative" }}>
-          <Card.Cover source={{ uri: item.url }} style={{ height: 140 }} />
-          {item.is_primary && (
+          <Card.Cover
+            source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${item.url}` }}
+            style={{ height: 140 }}
+          />
+          {item.is_public && (
             <View
               style={{
                 position: "absolute",
                 top: 8,
-                left: 8,
+                right: 8,
                 backgroundColor: theme.colors.primary,
                 paddingHorizontal: 8,
                 paddingVertical: 4,
@@ -84,37 +95,10 @@ export default function PhotoGrid({
                   fontFamily: theme.fonts.bodyLarge.fontFamily,
                 }}
               >
-                PRIMARY
+                PUBLIC
               </Text>
             </View>
           )}
-
-          <View
-            style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              backgroundColor:
-                item.status === "active"
-                  ? "rgba(16,185,129,0.95)"
-                  : item.status === "reported"
-                  ? "rgba(245,158,11,0.95)"
-                  : "rgba(239,68,68,0.95)",
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 8,
-            }}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                fontFamily: theme.fonts.bodyLarge.fontFamily,
-              }}
-            >
-              {String(item.status || "").toUpperCase()}
-            </Text>
-          </View>
         </View>
 
         <Card.Content>
@@ -124,7 +108,7 @@ export default function PhotoGrid({
               fontSize: 14,
             }}
           >
-            {item.user_name || "—"}
+            {user?.email ? user.email.split("@")[0] : "—"}
           </Text>
           <Text
             style={{
@@ -133,7 +117,7 @@ export default function PhotoGrid({
               fontFamily: theme.fonts.bodyLarge.fontFamily,
             }}
           >
-            {item.user_email || ""}
+            {user?.email || ""}
           </Text>
         </Card.Content>
 
@@ -157,9 +141,10 @@ export default function PhotoGrid({
 
   return (
     <FlatList
+      key={numColumns}
       data={photos}
       keyExtractor={(item) => String(item.id)}
-      numColumns={2}
+      numColumns={numColumns}
       contentContainerStyle={{ padding: 8, paddingBottom: 24 }}
       columnWrapperStyle={{ justifyContent: "space-between" }}
       renderItem={renderItem}

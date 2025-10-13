@@ -32,8 +32,8 @@ class AuthService {
   /**
    * Đăng xuất người dùng (clear token từ client)
    */
-  logout(): void {
-    this.clearToken();
+  async logout(): Promise<void> {
+    await this.clearToken();
   }
 
   // ===== TOKEN MANAGEMENT =====
@@ -63,8 +63,9 @@ class AuthService {
   /**
    * Kiểm tra xem có token hay không
    */
-  hasToken(): boolean {
-    return !!this.getToken();
+  async hasToken(): Promise<boolean> {
+    const token = await this.getToken();
+    return !!token;
   }
 
   /**
@@ -85,8 +86,10 @@ class AuthService {
   /**
    * Kiểm tra xem user đã đăng nhập hay chưa
    */
-  isAuthenticated(): boolean {
-    return this.hasToken() && !!this.getUser();
+  async isAuthenticated(): Promise<boolean> {
+    const token = await this.getToken();
+    const user = await this.getUser();
+    return !!token && !!user;
   }
 
   // ===== VALIDATION METHODS =====
@@ -212,7 +215,7 @@ class AuthService {
   /**
    * Get authorization header
    */
-  getAuthHeader(): { Authorization: string } | {} {
+  async getAuthHeader(): Promise<{ Authorization: string } | {}> {
     const token = this.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   }

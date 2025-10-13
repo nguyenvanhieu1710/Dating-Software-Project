@@ -11,6 +11,61 @@ import {
 
 class PhotoService {
   private readonly basePath = "/photo";
+  private readonly uploadPath = "/upload";
+
+  // ===== UPLOAD OPERATIONS =====
+
+  /**
+   * Upload a single photo file to the server
+   * Endpoint: POST /upload/single
+   * Field name: "file"
+   */
+  async uploadPhoto(file: {
+    uri: string;
+    type?: string;
+    name?: string;
+    mimeType?: string;
+  }): Promise<{
+    success: boolean;
+    url?: string;
+    file?: any;
+    message?: string;
+  }> {
+    try {
+      const formData = new FormData();
+
+      // ✅ Với web (blob:), fetch để lấy blob thực tế
+      if (file.uri.startsWith("blob:")) {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        formData.append("file", blob, file.name || "upload.jpg");
+      } else {
+        // ✅ Với mobile (file:///)
+        formData.append("file", {
+          uri: file.uri,
+          type: file.type || file.mimeType || "image/jpeg",
+          name: file.name || "upload.jpg",
+        } as any);
+      }
+
+      const res = await httpService.post<{
+        success: boolean;
+        message: string;
+        file: { path: string; filename: string; size: number };
+      }>(`/upload/single`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.success) {
+        return { success: true, url: res.file.path, file: res.file };
+      } else {
+        return { success: false, message: res.message };
+      }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      return { success: false, message: err.message || "Upload failed" };
+    }
+  }
 
   // ===== PHOTO OPERATIONS BY USER =====
 
@@ -117,7 +172,7 @@ class PhotoService {
     userId: number
   ): Promise<ApiResponse<void>> {
     return httpService.delete<ApiResponse<void>>(
-      `${this.basePath}/${photoId}/users/${userId}`
+      `${this.basePath}/${photoId}/by-user/${userId}`
     );
   }
 

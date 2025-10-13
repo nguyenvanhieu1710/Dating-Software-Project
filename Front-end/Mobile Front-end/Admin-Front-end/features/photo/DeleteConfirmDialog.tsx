@@ -8,11 +8,11 @@ import {
   useTheme,
   ActivityIndicator,
 } from "react-native-paper";
-import { AdminPhoto } from "@/services/adminPhotoService";
+import { IPhoto } from "@/types/photo";
 
 type Props = {
   visible: boolean;
-  photo: AdminPhoto | null;
+  photo: IPhoto | null;
   loading?: boolean;
   onCancel: () => void;
   onConfirm: () => void;

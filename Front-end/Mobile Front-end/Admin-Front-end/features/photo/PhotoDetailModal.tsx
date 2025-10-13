@@ -8,16 +8,24 @@ import {
   IconButton,
   useTheme,
 } from "react-native-paper";
-import { AdminPhoto } from "@/services/adminPhotoService";
+import { IPhoto } from "@/types/photo";
+import { IUser } from "@/types/user";
 
 type Props = {
   visible: boolean;
-  photo: AdminPhoto | null;
+  photo?: IPhoto | null;
+  users: IUser[];
   onClose: () => void;
 };
 
-export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
+export default function PhotoDetailModal({
+  visible,
+  photo,
+  users,
+  onClose,
+}: Props) {
   const theme = useTheme();
+  const user = users.find((u) => u.id === photo?.user_id);
 
   if (!photo) return null;
 
@@ -31,6 +39,7 @@ export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
           borderRadius: 12,
           backgroundColor: theme.colors.surface,
           padding: 16,
+          height: "98%",
         }}
       >
         <Card>
@@ -42,15 +51,18 @@ export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
             )}
           />
 
-          <ScrollView style={{ maxHeight: 400 }}>
+          <ScrollView style={{ height: "90%" }}>
             <Image
-              source={{ uri: photo.url }}
-              style={{ width: "100%", height: 250, borderRadius: 8 }}
-              resizeMode="cover"
+              source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${photo.url}` }}
+              style={{ width: "100%", height: 480, borderRadius: 8 }}
+              resizeMode="contain"
             />
 
             <Card.Content style={{ marginTop: 12 }}>
-              <Text variant="bodyMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                variant="bodyMedium"
+                style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 <Text
                   style={{
                     fontWeight: "600",
@@ -59,9 +71,12 @@ export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
                 >
                   User:{" "}
                 </Text>
-                {photo.user_name}
+                {user?.email ? user.email.split("@")[0] : ""}
               </Text>
-              <Text variant="bodyMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                variant="bodyMedium"
+                style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 <Text
                   style={{
                     fontWeight: "600",
@@ -70,9 +85,12 @@ export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
                 >
                   Email:{" "}
                 </Text>
-                {photo.user_email}
+                {user?.email}
               </Text>
-              <Text variant="bodyMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                variant="bodyMedium"
+                style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 <Text
                   style={{
                     fontWeight: "600",
@@ -81,20 +99,26 @@ export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
                 >
                   Status:{" "}
                 </Text>
-                {photo.status}
+                {user?.status}
               </Text>
-              <Text variant="bodyMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                variant="bodyMedium"
+                style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 <Text
                   style={{
                     fontWeight: "600",
                     fontFamily: theme.fonts.bodyLarge.fontFamily,
                   }}
                 >
-                  Primary:{" "}
+                  Public:{" "}
                 </Text>
-                {photo.is_primary ? "Yes" : "No"}
+                {photo.is_public ? "Yes" : "No"}
               </Text>
-              <Text variant="bodyMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                variant="bodyMedium"
+                style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 <Text
                   style={{
                     fontWeight: "600",
@@ -103,9 +127,12 @@ export default function PhotoDetailModal({ visible, photo, onClose }: Props) {
                 >
                   Reports:{" "}
                 </Text>
-                {photo.report_count || 0}
+                {0}
               </Text>
-              <Text variant="bodyMedium" style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                variant="bodyMedium"
+                style={{ fontFamily: theme.fonts.bodyLarge.fontFamily }}
+              >
                 <Text
                   style={{
                     fontWeight: "600",

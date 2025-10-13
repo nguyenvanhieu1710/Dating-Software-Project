@@ -3,16 +3,28 @@ import { SafeAreaView, StatusBar, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Text, Surface, useTheme } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
+import { authService } from "@/services/auth.service";
 
 export default function SplashScreen() {
   const router = useRouter();
   const theme = useTheme();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace("/onboarding");
-    }, 3000);
-    return () => clearTimeout(timer);
+    const checkAuthAndNavigate = async () => {
+      try {
+        const isAuthenticated = await authService.isAuthenticated();
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (isAuthenticated) {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/onboarding");
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+        router.replace("/onboarding");
+      }
+    };
+    checkAuthAndNavigate();
   }, [router]);
 
   return (
