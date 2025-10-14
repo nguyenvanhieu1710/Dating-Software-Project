@@ -17,7 +17,8 @@ import { getDiscoveryUsers, User, getCurrentUserId } from "@/services/userApi";
 import { userService } from "@/services/user.service";
 import { swipeService } from "@/services/swipe.service";
 import { CreateSwipeRequest } from "@/types/swipe";
-
+import { photoService } from "@/services/photo.service";
+import { IPhoto } from "@/types/photo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   requestLocationPermission,
@@ -40,6 +41,7 @@ export default function DiscoveryScreen() {
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<any | null>(null);
   const [maxDistance, setMaxDistance] = useState(10);
+  const [photoOfUser, setPhotoOfUser] = useState<IPhoto[]>([]);
 
   const swipeRef = useRef<SwipeCardHandle | null>(null);
 
@@ -110,6 +112,23 @@ export default function DiscoveryScreen() {
     )
       setCurrentPhotoIndex((prev) => prev + 1);
   };
+
+  useEffect(() => {
+    if (user) {
+      const loadPhotos = async () => {
+        try {
+          const photoOfUser = await photoService.getPhotosByUserId(user.id);
+          // console.log("getPhotosOfUser: ", photoOfUser);
+          if (photoOfUser.success && Array.isArray(photoOfUser.data)) {
+            setPhotoOfUser(photoOfUser.data);
+          }
+        } catch (error) {
+          console.error("Failed to load photos", error);
+        }
+      };
+      loadPhotos();
+    }
+  }, [user]);
 
   const performSwipeApi = async (
     direction: "left" | "right" | "superlike",
@@ -343,6 +362,7 @@ export default function DiscoveryScreen() {
           <SwipeCard
             ref={swipeRef}
             user={user}
+            photos={photoOfUser}
             photoIndex={currentPhotoIndex}
             onPhotoNav={handlePhotoNav}
             onOpenProfile={handleOpenProfile}

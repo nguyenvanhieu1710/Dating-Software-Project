@@ -43,7 +43,9 @@ function initSocket(server) {
       try {
         const { match_id, content, message_type, reply_to_message_id } = data;
         if (!match_id || !content) {
-          socket.emit("error", { message: "match_id and content are required" });
+          socket.emit("error", {
+            message: "match_id and content are required",
+          });
           return;
         }
 
@@ -62,17 +64,39 @@ function initSocket(server) {
 
         io.to(`user_${otherUserId}`).emit("receive-message", message);
         socket.emit("message-sent", message);
-
       } catch (err) {
         console.error("Error sending message:", err);
         socket.emit("error", { message: "Failed to send message" });
       }
     });
 
+    socket.on("typing", async (data) => {
+      try {
+        const { match_id, is_typing } = data;
+        if (!match_id) return;
+
+        // get the other user in the match
+        const otherUserId = await messageModel.getOtherUserFromMatch(
+          match_id,
+          socket.userId
+        );
+
+        // emit to the other user(s) in that match
+        io.to(`user_${otherUserId}`).emit("user-typing", {
+          match_id,
+          user_id: socket.userId,
+          is_typing: !!is_typing,
+        });
+      } catch (err) {
+        console.error("Error handling typing event:", err);
+      }
+    });
+
     // Notification events
     socket.on("send-global-notification", async (notificationData) => {
       try {
-        const { user_id, title, body, data, sent_at, read_at, create_at } = notificationData;
+        const { user_id, title, body, data, sent_at, read_at, create_at } =
+          notificationData;
 
         if (!title || !body) {
           socket.emit("error", { message: "title and body are required" });
@@ -91,7 +115,6 @@ function initSocket(server) {
 
         io.emit("receive-notification", notification);
         socket.emit("notification-sent", notification);
-
       } catch (err) {
         console.error("Error sending notification:", err);
         socket.emit("error", { message: "Failed to send notification" });

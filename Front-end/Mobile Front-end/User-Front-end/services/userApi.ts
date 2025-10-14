@@ -119,7 +119,7 @@ export const getDiscoveryUsers = async (): Promise<User[]> => {
         Authorization: `Bearer ${token}`
       }
     });
-    console.log('Get user response:', response.data.data);
+    // console.log('Get user response:', response.data.data);
     
     if (response.data.success && Array.isArray(response.data.data)) {
       // Get current user ID to exclude from discovery list

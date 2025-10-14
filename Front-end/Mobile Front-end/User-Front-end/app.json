@@ -3,7 +3,6 @@
     "name": "User-Front-end",
     "slug": "User-Front-end",
     "version": "1.0.0",
-    "port": 3000,
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "userfrontend",

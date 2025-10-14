@@ -6,9 +6,17 @@ type ChatInputProps = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 };
 
-export default function ChatInput({ value, onChangeText, onSend }: ChatInputProps) {
+export default function ChatInput({
+  value,
+  onChangeText,
+  onSend,
+  onFocus,
+  onBlur,
+}: ChatInputProps) {
   return (
     <View
       style={{
@@ -27,6 +35,8 @@ export default function ChatInput({ value, onChangeText, onSend }: ChatInputProp
         onChangeText={onChangeText}
         style={{ flex: 1, marginRight: 8 }}
         multiline
+        onFocus={onFocus}
+        onBlur={onBlur}
       />
       <IconButton
         icon="send"

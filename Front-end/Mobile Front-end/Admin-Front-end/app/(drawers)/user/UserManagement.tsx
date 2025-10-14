@@ -1,8 +1,9 @@
 import * as React from "react";
 import { View, ActivityIndicator, Text } from "react-native";
-import { FAB } from "react-native-paper";
+import { FAB, useTheme, TextInput } from "react-native-paper";
 import UserTable from "@/features/user/UserTable";
 import UserDialog from "@/features/user/UserDialog";
+import PaginationControls from "@/components/paginations/TablePagination";
 import { adminUserService } from "@/services/admin-user.service"; // Import service
 import { IUser } from "@/types/user";
 import { IProfile } from "@/types/profile";
@@ -55,6 +56,7 @@ const mapNestedToFlat = (nestedData: IUser & { profile?: IProfile }): any => {
 };
 
 export default function UsersScreen() {
+  const theme = useTheme();
   const [users, setUsers] = React.useState<(IUser & { profile?: IProfile })[]>(
     []
   );
@@ -64,6 +66,29 @@ export default function UsersScreen() {
   const [openDialog, setOpenDialog] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [page, setPage] = React.useState(1);
+  const pageSize = 10;
+
+  // Filter
+  const filteredUsers = React.useMemo(() => {
+    if (!searchTerm.trim()) return users;
+    return users.filter(
+      (user) =>
+        user.id.toString().includes(searchTerm.trim()) ||
+        user.email.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
+        user.profile?.first_name
+          ?.toLowerCase()
+          .includes(searchTerm.trim().toLowerCase())
+    );
+  }, [searchTerm, users]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredUsers.length / pageSize);
+  const paginatedUsers = React.useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, page, pageSize]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -169,6 +194,19 @@ export default function UsersScreen() {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
+      {/* Search input */}
+      <TextInput
+        mode="outlined"
+        placeholder="Search by ID, Email, or Name"
+        value={searchTerm}
+        onChangeText={setSearchTerm}
+        style={{
+          marginBottom: 12,
+          fontFamily: theme.fonts.bodyLarge.fontFamily,
+          backgroundColor: theme.colors.surface,
+        }}
+        outlineStyle={{ borderRadius: 12 }}
+      />
       {/* Hiển thị loading spinner */}
       {loading && (
         <View style={{ alignItems: "center", marginVertical: 16 }}>
@@ -187,6 +225,13 @@ export default function UsersScreen() {
       {!loading && (
         <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} />
       )}
+
+      {/* Pagination */}
+      <PaginationControls
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       {/* Nút thêm mới */}
       <FAB

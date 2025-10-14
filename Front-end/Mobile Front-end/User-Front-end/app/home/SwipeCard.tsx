@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import { User } from "@/services/userApi";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
+import { IPhoto } from "@/types/photo";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const SWIPE_THRESHOLD = screenWidth * 0.25;
@@ -20,6 +21,7 @@ export type SwipeCardHandle = {
 
 type Props = {
   user: User;
+  photos: IPhoto[];
   photoIndex: number;
   onPhotoNav: (dir: "left" | "right") => void;
   onOpenProfile: () => void;
@@ -27,7 +29,7 @@ type Props = {
 };
 
 const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
-  ({ user, photoIndex, onPhotoNav, onOpenProfile, onSwiped }, ref) => {
+  ({ user, photos, photoIndex, onPhotoNav, onOpenProfile, onSwiped }, ref) => {
     const theme = useTheme();
     const swipeAnim = useRef(new Animated.Value(0)).current;
     const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -103,7 +105,7 @@ const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
           }}
         >
           <Image
-            source={{ uri: user?.photos?.[photoIndex] }}
+            source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${photos?.[photoIndex]?.url}` }}
             style={{ width: "100%", height: "100%", resizeMode: "cover" }}
           />
 
@@ -118,7 +120,7 @@ const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
               zIndex: 5,
             }}
           >
-            {(user.photos || []).map((_, i) => (
+            {(photos || []).map((_, i) => (
               <View
                 key={i}
                 style={{
