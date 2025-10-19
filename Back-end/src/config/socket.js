@@ -95,26 +95,26 @@ function initSocket(server) {
     // Notification events
     socket.on("send-global-notification", async (notificationData) => {
       try {
-        const { user_id, title, body, data, sent_at, read_at, create_at } =
-          notificationData;
+        // const { user_id, title, body, data, sent_at, read_at, create_at } =
+        //   notificationData;
 
-        if (!title || !body) {
-          socket.emit("error", { message: "title and body are required" });
-          return;
-        }
+        // if (!title || !body) {
+        //   socket.emit("error", { message: "title and body are required" });
+        //   return;
+        // }
 
-        const notification = await notificationModel.create({
-          user_id,
-          title,
-          body,
-          data,
-          sent_at,
-          read_at,
-          create_at,
-        });
+        // const notification = await notificationModel.create({
+        //   user_id,
+        //   title,
+        //   body,
+        //   data,
+        //   sent_at,
+        //   read_at,
+        //   create_at,
+        // });
 
-        io.emit("receive-notification", notification);
-        socket.emit("notification-sent", notification);
+        io.emit("receive-notification", notificationData);
+        socket.emit("notification-sent", notificationData);
       } catch (err) {
         console.error("Error sending notification:", err);
         socket.emit("error", { message: "Failed to send notification" });

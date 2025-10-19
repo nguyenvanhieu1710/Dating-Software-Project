@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Card, Text, useTheme } from "react-native-paper";
-import { SelectableItem } from "./SelectableItem";
+import SelectableItem from "./SelectableItem";
 
 interface InterestsSectionProps {
   interests: string[];
@@ -9,7 +9,7 @@ interface InterestsSectionProps {
   onToggleInterest: (interest: string) => void;
 }
 
-export const InterestsSection: React.FC<InterestsSectionProps> = ({
+const InterestsSection: React.FC<InterestsSectionProps> = ({
   interests,
   selectedInterests,
   onToggleInterest,
@@ -45,3 +45,5 @@ export const InterestsSection: React.FC<InterestsSectionProps> = ({
     </Card>
   );
 };
+
+export default InterestsSection;

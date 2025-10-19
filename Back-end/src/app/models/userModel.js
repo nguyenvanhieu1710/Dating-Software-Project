@@ -178,6 +178,18 @@ class UserModel extends BaseModel {
         await client.query(profileSql, [...profileValues, user.rows[0].id]);
       }
 
+      const verificationTypes = ["photo", "id", "phone"];
+      for (const type of verificationTypes) {
+        const verificationSql = `
+          INSERT INTO user_verifications
+            (user_id, verification_type, status)
+          VALUES
+            ($1, $2, 'not_submitted')
+          ON CONFLICT (user_id, verification_type) DO NOTHING
+        `;
+        await client.query(verificationSql, [user.rows[0].id, type]);
+      }
+
       return user.rows[0];
     });
   }
@@ -311,16 +323,16 @@ class UserModel extends BaseModel {
   async getVerifications(params = {}) {
     let sql = `
       SELECT 
-        uv.id AS verification_id,
+        uv.id AS id,
         uv.user_id,
         uv.verification_type,
-        COALESCE(uv.status, 'not_submitted') AS verification_status,
+        COALESCE(uv.status, 'not_submitted') AS status,
         uv.evidence_url,
         uv.reviewed_by,
         uv.reviewed_at,
         uv.notes,
-        uv.created_at AS verification_created_at,
-        uv.updated_at AS verification_updated_at,
+        uv.created_at,
+        uv.updated_at,
         u.email,
         u.phone_number,
         u.status AS user_status
@@ -328,13 +340,20 @@ class UserModel extends BaseModel {
       LEFT JOIN user_verifications uv ON u.id = uv.user_id
       WHERE u.status != 'deleted'
     `;
+
     const conditions = [];
     const values = [];
+
+    // chỉ thêm điều kiện lọc khi uv.status tồn tại
     if (params.status && params.status !== "all") {
       conditions.push(`uv.status = $${values.length + 1}`);
       values.push(params.status);
     }
-    if (conditions.length) sql += ` WHERE ${conditions.join(" AND ")}`;
+
+    if (conditions.length) {
+      sql += ` AND ${conditions.join(" AND ")}`;
+    }
+
     sql += ` ORDER BY uv.created_at ASC NULLS LAST`;
     return await DatabaseHelper.getAll(sql, values);
   }

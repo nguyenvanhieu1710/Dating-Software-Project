@@ -22,7 +22,7 @@ interface PhotoGridProps {
   isUploading?: boolean;
 }
 
-export const PhotoGrid: React.FC<PhotoGridProps> = ({
+const PhotoGrid: React.FC<PhotoGridProps> = ({
   photos,
   maxPhotos = 5,
   onAddPhoto,
@@ -165,3 +165,5 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
     </View>
   );
 };
+
+export default PhotoGrid;

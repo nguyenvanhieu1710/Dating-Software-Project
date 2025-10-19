@@ -9,7 +9,7 @@ interface ProfileHeaderProps {
   age?: number;
 }
 
-export const ProfileDetailHeader: React.FC<ProfileHeaderProps> = ({
+const ProfileDetailHeader: React.FC<ProfileHeaderProps> = ({
   name,
   age,
 }) => {
@@ -56,3 +56,5 @@ export const ProfileDetailHeader: React.FC<ProfileHeaderProps> = ({
     </View>
   );
 };
+
+export default ProfileDetailHeader;

@@ -15,7 +15,7 @@ interface PreviewContentProps {
   userData: any;
 }
 
-export const PreviewContent: React.FC<PreviewContentProps> = ({
+const PreviewContent: React.FC<PreviewContentProps> = ({
   formData,
   photos,
   selectedInterests,
@@ -341,3 +341,5 @@ export const PreviewContent: React.FC<PreviewContentProps> = ({
     </View>
   );
 };
+
+export default PreviewContent;

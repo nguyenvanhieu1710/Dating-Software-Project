@@ -15,7 +15,7 @@ interface SafetyToolCardProps {
   onPress: () => void;
 }
 
-export const SafetyToolCard: React.FC<SafetyToolCardProps> = ({
+const SafetyToolCard: React.FC<SafetyToolCardProps> = ({
   title,
   description,
   icon,
@@ -119,3 +119,5 @@ export const SafetyToolCard: React.FC<SafetyToolCardProps> = ({
     </TouchableRipple>
   );
 };
+
+export default SafetyToolCard;

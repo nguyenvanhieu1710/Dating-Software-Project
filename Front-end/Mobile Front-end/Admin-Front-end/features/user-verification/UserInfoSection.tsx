@@ -2,6 +2,7 @@ import * as React from "react";
 import { View, Text, Image } from "react-native";
 import { useTheme } from "react-native-paper";
 import { IUserVerification } from "@/types/user-verification";
+import { photoService } from "@/services/admin-photo.service";
 
 type Props = {
   verification: IUserVerification;
@@ -9,6 +10,7 @@ type Props = {
 
 export default function UserInfoSection({ verification }: Props) {
   const theme = useTheme();
+  const [photos, setPhotos] = React.useState<string[]>([]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("vi-VN", {
@@ -17,6 +19,23 @@ export default function UserInfoSection({ verification }: Props) {
       year: "numeric",
     });
   };
+
+  const getPhotoByVerificationId = async () => {
+    try {
+      const response = await photoService.getPhotosByUserId(verification.user_id);
+      if (response.success && Array.isArray(response.data)) {
+        const data = response.data;
+        console.log("Photos:", data);
+        setPhotos(data.map((photo) => photo.url));
+      }
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    getPhotoByVerificationId();
+  }, [verification]);
 
   const InfoRow = ({ label, value }: { label: string; value: string }) => (
     <View style={{ marginBottom: 12 }}>
@@ -53,7 +72,7 @@ export default function UserInfoSection({ verification }: Props) {
       }}
     >
       <Image
-        source={{ uri: verification.evidence_url }}
+        source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${photos[0]}` }}
         style={{
           width: 100,
           height: 100,

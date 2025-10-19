@@ -7,6 +7,7 @@ import PhotoGallery from "./PhotoGallery";
 import VerificationChecklist from "./VerificationChecklist";
 import VerificationActionsPanel from "./VerificationActionsPanel";
 import RejectionReasonDialog from "./RejectionReasonDialog";
+import { photoService } from "@/services/admin-photo.service";
 
 type Props = {
   visible: boolean;
@@ -29,10 +30,26 @@ export default function VerificationDetailModal({
   const [notes, setNotes] = React.useState("");
   const [showRejectDialog, setShowRejectDialog] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [photos, setPhotos] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     if (verification) {
       setNotes(verification.notes || "");
+    }
+
+    if (verification?.evidence_url) {
+      setPhotos([verification.evidence_url]);
+    }
+
+    // console.log("Verification ID:", verification?.id);
+    if (verification?.user_id) {
+      photoService.getPhotosByUserId(verification.user_id).then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          const data = res.data;
+          // console.log("Photos:", data);
+          setPhotos(data.map((photo) => photo.url));
+        }
+      });
     }
   }, [verification]);
 
@@ -81,8 +98,6 @@ export default function VerificationDetailModal({
     }
   };
 
-  const photos = verification?.evidence_url ? [verification.evidence_url] : [];
-
   if (!verification) return null;
 
   const isWideScreen = Dimensions.get("window").width > 768;
@@ -114,7 +129,14 @@ export default function VerificationDetailModal({
             }}
           >
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 20, fontWeight: "600", color: theme.colors.onSurface, fontFamily: theme.fonts.bodyLarge.fontFamily }}>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "600",
+                  color: theme.colors.onSurface,
+                  fontFamily: theme.fonts.bodyLarge.fontFamily,
+                }}
+              >
                 Verification details
               </Text>
             </View>
@@ -134,7 +156,10 @@ export default function VerificationDetailModal({
                       <PhotoGallery photos={photos} />
                     </View>
                     <View style={{ flex: 0.8 }}>
-                      <VerificationChecklist notes={notes} onNotesChange={setNotes} />
+                      <VerificationChecklist
+                        notes={notes}
+                        onNotesChange={setNotes}
+                      />
                       <VerificationActionsPanel
                         onVerified={handleVerified}
                         onReject={handleReject}
@@ -148,7 +173,10 @@ export default function VerificationDetailModal({
                   <View>
                     <UserInfoSection verification={verification} />
                     <PhotoGallery photos={photos} />
-                    <VerificationChecklist notes={notes} onNotesChange={setNotes} />
+                    <VerificationChecklist
+                      notes={notes}
+                      onNotesChange={setNotes}
+                    />
                     <VerificationActionsPanel
                       onVerified={handleVerified}
                       onReject={handleReject}

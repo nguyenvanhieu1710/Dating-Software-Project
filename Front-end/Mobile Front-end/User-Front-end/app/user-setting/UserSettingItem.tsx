@@ -14,7 +14,7 @@ interface SettingItemProps {
   isDanger?: boolean;
 }
 
-export const SettingItem: React.FC<SettingItemProps> = ({
+const SettingItem: React.FC<SettingItemProps> = ({
   label,
   icon,
   onPress,
@@ -81,3 +81,5 @@ export const SettingItem: React.FC<SettingItemProps> = ({
     </TouchableRipple>
   );
 };
+
+export default SettingItem;

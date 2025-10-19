@@ -6,6 +6,8 @@ import Header from "@/components/header/Header";
 import ButtonFooter from "@/components/footer/ButtonFooter";
 import FeatureCard from "./subscriptions/FeatureCard";
 import SubscriptionTabs from "./subscriptions/SubscriptionTabs";
+import { subscriptionService } from "@/services/subscription.service";
+import { userService } from "@/services/user.service";
 
 export default function SubscriptionsScreen() {
   const router = useRouter();
@@ -103,6 +105,62 @@ export default function SubscriptionsScreen() {
   const getCurrentPlan = () =>
     subscriptionPlans[activeTab as keyof typeof subscriptionPlans];
 
+  const handleSubscribe = async () => {
+    try {
+      const user = await userService.getCurrentUser();
+      if (!user?.data) return console.error("No user data found");
+
+      const subscriptionResponse =
+        await subscriptionService.getSubscriptionsByUserId(user.data.id);
+      if (!subscriptionResponse.success || !subscriptionResponse.data) {
+        alert("Unable to fetch subscription data.");
+        return;
+      }
+
+      const activeSubscriptions = subscriptionResponse.data.filter(
+        (sub) => sub.status === "active"
+      );
+
+      if (activeSubscriptions.length > 0) {
+        const isSubscribedToCurrentPlan = activeSubscriptions.some(
+          (sub) => sub.plan_type.toLowerCase() === activeTab
+        );
+
+        if (isSubscribedToCurrentPlan) {
+          alert(`You are already subscribed to the ${activeTab} plan.`);
+          return;
+        }
+
+        const activePlanNames = activeSubscriptions
+          .map(
+            (sub) =>
+              sub.plan_type.charAt(0).toUpperCase() + sub.plan_type.slice(1)
+          )
+          .join(", ");
+
+        alert(
+          `You are currently subscribed to: ${activePlanNames}. Do you want to subscribe to the ${activeTab} plan as well?`
+        );
+        return;
+      }
+
+      // No active subscription, proceed
+      console.log(`Subscribing to ${activeTab} plan for user ${user.data.id}`);
+      alert(
+        `Subscribed to ${
+          activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+        } plan!`
+      );
+      const result = await subscriptionService.createSubscription({
+        user_id: user.data.id,
+        plan_type: activeTab,
+      });
+      console.log("Subscription result:", result);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <Surface style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Header title="Subscriptions" />
@@ -129,7 +187,7 @@ export default function SubscriptionsScreen() {
       <ButtonFooter
         label="Subscribe for"
         price={getCurrentPlan().price}
-        onPress={() => console.log("Subscribe")}
+        onPress={() => handleSubscribe()}
       />
     </Surface>
   );

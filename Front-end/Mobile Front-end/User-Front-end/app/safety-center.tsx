@@ -16,9 +16,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafetyCategoryCard } from "./safety-center/SafetyCategoryCard";
-import { SafetyToolCard } from "./safety-center/SafetyToolCard";
-import { SafetyResourceCard } from "./safety-center/SafetyResourceCard";
+import SafetyCategoryCard from "./safety-center/SafetyCategoryCard";
+import SafetyToolCard from "./safety-center/SafetyToolCard";
+import SafetyResourceCard from "./safety-center/SafetyResourceCard";
 import Header from "@/components/header/Header";
 
 const { width, height } = Dimensions.get("window");

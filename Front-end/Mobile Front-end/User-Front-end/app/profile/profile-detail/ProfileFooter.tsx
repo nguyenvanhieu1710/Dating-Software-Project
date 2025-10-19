@@ -6,7 +6,7 @@ import { Platform } from "react-native";
 import { userBlockService } from "@/services/user-block.service";
 import { userService } from "@/services/user.service";
 import { IUserBlock, CreateBlockRequest } from "@/types/user-block";
-import { ReportUserModal } from "./ReportUserModal";
+import ReportUserModal from "./ReportUserModal";
 import { moderationService } from "@/services/moderation.service";
 import {
   IModerationReport,
@@ -20,7 +20,7 @@ interface ProfileFooterProps {
   onReport?: (userId: string) => void;
 }
 
-export const ProfileFooter: React.FC<ProfileFooterProps> = ({
+const ProfileFooter: React.FC<ProfileFooterProps> = ({
   userId,
   onShareProfile,
   onBlock,
@@ -176,3 +176,5 @@ export const ProfileFooter: React.FC<ProfileFooterProps> = ({
     </View>
   );
 };
+
+export default ProfileFooter;

@@ -71,13 +71,13 @@ export const drawerScreens = [
   {
     name: "subscription/SubscriptionManagement",
     label: "Subscriptions",
-    title: "Subscription Management",
+    title: "User Subscription Package Management",
     icon: "diamond",
   },
   {
     name: "consumable/ConsumableManagement",
     label: "Consumables",
-    title: "Consumable Management",
+    title: "User Consumable Management",
     icon: "gift",
   },
 
@@ -88,19 +88,18 @@ export const drawerScreens = [
     title: "User Settings",
     icon: "settings",
   },
-
-  // Security
-  {
-    name: "moderation-report/ModerationReportManagement",
-    label: "Moderation Report",
-    title: "Moderation Report",
-    icon: "shield-checkmark",
-  },
   // User Verification
   {
     name: "user-verification/UserVerificationManagement",
     label: "User Verification",
     title: "User Verification",
+    icon: "shield-checkmark",
+  },
+  // Security
+  {
+    name: "moderation-report/ModerationReportManagement",
+    label: "Moderation Report",
+    title: "Moderation Report",
     icon: "shield-checkmark",
   },
   // User Block

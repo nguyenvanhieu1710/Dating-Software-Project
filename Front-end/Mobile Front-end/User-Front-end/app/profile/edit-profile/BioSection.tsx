@@ -1,13 +1,13 @@
 import React from "react";
 import { Card, Text, useTheme } from "react-native-paper";
-import { FormInput } from "./FormInput";
+import FormInput from "./FormInput";
 
 interface BioSectionProps {
   bio: string;
   onUpdateBio: (bio: string) => void;
 }
 
-export const BioSection: React.FC<BioSectionProps> = ({ bio, onUpdateBio }) => {
+const BioSection: React.FC<BioSectionProps> = ({ bio, onUpdateBio }) => {
   const theme = useTheme();
   return (
     <Card
@@ -43,3 +43,5 @@ export const BioSection: React.FC<BioSectionProps> = ({ bio, onUpdateBio }) => {
     </Card>
   );
 };
+
+export default BioSection;

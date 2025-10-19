@@ -3,9 +3,11 @@ import { View, ActivityIndicator, Alert } from "react-native";
 import { FAB, Snackbar, TextInput, useTheme } from "react-native-paper";
 import NotificationTable from "@/features/notification/NotificationTable";
 import NotificationDialog from "@/features/notification/NotificationDialog";
+import PaginationControls from "@/components/paginations/TablePagination";
+import { adminUserService } from "@/services/admin-user.service";
+import { IAdminUser } from "@/types/admin-user";
 import { adminNotificationService } from "@/services/admin-notification.service";
 import { INotification, NotificationQueryParams } from "@/types/notification";
-import PaginationControls from "@/components/paginations/TablePagination";
 import { io, Socket } from "socket.io-client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -20,9 +22,7 @@ const useNotificationData = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await adminNotificationService.getAllNotifications(
-        params
-      );
+      const response = await adminNotificationService.getAllNotifications();
       // console.log("response of getAllNotifications: ", response);
       if (response.success && Array.isArray(response.data)) {
         setNotifications(response.data);
@@ -166,6 +166,7 @@ export default function NotificationManagement() {
     fetchNotifications,
     totalPages,
   } = useNotificationData();
+  const [users, setUsers] = React.useState<IAdminUser[]>([]);
   const [currentUserId, setCurrentUserId] = React.useState<number>(0);
   const socketRef = React.useRef<Socket | null>(null);
 
@@ -179,6 +180,14 @@ export default function NotificationManagement() {
       }
     };
     loadCurrentUser();
+    const loadUsers = async () => {
+      const response = await adminUserService.getAllUsers();
+      console.log("response of getAllUsers: ", response);
+      if (response.success && Array.isArray(response.data)) {
+        setUsers(response.data);
+      }
+    };
+    loadUsers();
   }, []);
 
   React.useEffect(() => {
@@ -377,6 +386,57 @@ export default function NotificationManagement() {
     }
   };
 
+  // ==================== SEND TO ALL USERS ====================
+  const [sendAllDialogVisible, setSendAllDialogVisible] = React.useState(false);
+  const [globalTitle, setGlobalTitle] = React.useState("");
+  const [globalBody, setGlobalBody] = React.useState("");
+
+  // Hàm gửi tới tất cả user
+  const sendGlobalNotificationToAll = async () => {
+    if (!globalTitle.trim() || !globalBody.trim()) {
+      showSnackbar("Please enter both title and body");
+      return;
+    }
+
+    if (!users || users.length === 0) {
+      showSnackbar("No users found to send notifications");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("🚀 Sending global notification to all users:", users);
+      for (const user of users) {
+        await adminNotificationService.createNotification({
+          user_id: Number(user.id),
+          title: globalTitle.trim(),
+          body: globalBody.trim(),
+          data: {},
+        });
+
+        sendGlobalNotification({
+          id: Date.now() + Math.random(),
+          user_id: Number(user.id),
+          title: globalTitle.trim(),
+          body: globalBody.trim(),
+          data: {},
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      showSnackbar(`Sent notification to ${users.length} users`);
+      setSendAllDialogVisible(false);
+      setGlobalTitle("");
+      setGlobalBody("");
+      fetchNotifications({ page, limit: pageSize });
+    } catch (err) {
+      console.error("Send to all users error:", err);
+      showSnackbar("Failed to send to all users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Clear error khi đóng snackbar
   const handleSnackbarDismiss = () => {
     setSnackbarVisible(false);
@@ -433,6 +493,42 @@ export default function NotificationManagement() {
         currentPage={page}
         totalPages={totalPages}
         onPageChange={setPage}
+      />
+
+      <FAB
+        icon="send"
+        label="Send notification to all users"
+        style={{
+          position: "absolute",
+          left: 16,
+          bottom: 16,
+          alignSelf: "flex-start",
+          backgroundColor: theme.colors.secondary,
+        }}
+        color="white"
+        theme={{
+          fonts: {
+            labelLarge: {
+              fontFamily: theme.fonts.bodyLarge.fontFamily,
+            },
+          },
+        }}
+        onPress={() => {
+          setSendAllDialogVisible(true);
+        }}
+      />
+
+      {/* Send to all users dialog */}
+      <NotificationDialog
+        visible={sendAllDialogVisible}
+        onClose={() => setSendAllDialogVisible(false)}
+        onSave={(notificationData) => {
+          setGlobalTitle(notificationData.title);
+          setGlobalBody(notificationData.body);
+          sendGlobalNotificationToAll();
+        }}
+        notification={null}
+        isGlobal
       />
 
       {/* Add new FAB */}

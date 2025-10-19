@@ -7,7 +7,7 @@ interface ProfileInfoSectionProps {
   children: React.ReactNode;
 }
 
-export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ title, children }) => {
+const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ title, children }) => {
   const theme = useTheme();
 
   return (
@@ -36,3 +36,5 @@ export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ title, c
     </Surface>
   );
 };
+
+export default ProfileInfoSection;

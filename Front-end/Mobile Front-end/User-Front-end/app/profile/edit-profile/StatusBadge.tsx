@@ -8,7 +8,7 @@ interface StatusBadgeProps {
   verified: boolean;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({
+const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   verified,
 }) => {
@@ -66,6 +66,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     </View>
   );
 };
+
+export default StatusBadge;
 
 const styles = StyleSheet.create({
   container: {

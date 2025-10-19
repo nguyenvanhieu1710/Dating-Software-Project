@@ -223,7 +223,7 @@ export default function UsersScreen() {
 
       {/* Bảng User */}
       {!loading && (
-        <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} />
+        <UserTable users={paginatedUsers} onEdit={handleEdit} onDelete={handleDelete} />
       )}
 
       {/* Pagination */}

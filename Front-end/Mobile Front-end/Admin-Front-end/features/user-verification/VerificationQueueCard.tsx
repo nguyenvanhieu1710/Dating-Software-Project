@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useTheme, Card } from "react-native-paper";
 import { IUserVerification } from "@/types/user-verification";
 import VerificationStatusBadge from "./VerificationStatusBadge";
+import { photoService } from "@/services/admin-photo.service";
 
 type Props = {
   verification: IUserVerification;
@@ -11,11 +12,29 @@ type Props = {
 
 export default function VerificationQueueCard({ verification, onClick }: Props) {
   const theme = useTheme();
+  const [photos, setPhotos] = React.useState<string[]>([]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN");
   };
+
+  const getPhotoByVerificationId = async () => {
+    try {
+      const response = await photoService.getPhotosByUserId(verification.user_id);
+      if (response.success && Array.isArray(response.data)) {
+        const data = response.data;
+        // console.log("Photos:", data);
+        setPhotos(data.map((photo) => photo.url));
+      }
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    getPhotoByVerificationId();
+  }, [verification]);
 
   return (
     <Card style={{ marginBottom: 12, borderRadius: 12, elevation: 2, backgroundColor: theme.colors.surface }}>
@@ -23,7 +42,7 @@ export default function VerificationQueueCard({ verification, onClick }: Props) 
         <View style={{ padding: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Image
-              source={{ uri: verification.evidence_url }}
+              source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${photos[0]}` }}
               style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: theme.colors.surfaceVariant, marginRight: 16 }}
             />
             <View style={{ flex: 1 }}>

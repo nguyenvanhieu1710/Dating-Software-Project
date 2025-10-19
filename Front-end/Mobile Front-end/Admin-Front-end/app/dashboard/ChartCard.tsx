@@ -1,4 +1,3 @@
-// components/ChartCard.tsx
 import React from "react";
 import { Card, Text, useTheme } from "react-native-paper";
 import { View } from "react-native";

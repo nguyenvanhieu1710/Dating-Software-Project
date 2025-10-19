@@ -1,13 +1,13 @@
 import React from "react";
 import { Card, Text, Button, useTheme } from "react-native-paper";
-import { FormInput } from "./FormInput";
+import FormInput from "./FormInput";
 
 interface LocationSectionProps {
   location: string;
   onUseMyLocation: () => void;
 }
 
-export const LocationSection: React.FC<LocationSectionProps> = ({
+const LocationSection: React.FC<LocationSectionProps> = ({
   location,
   onUseMyLocation,
 }) => {
@@ -64,3 +64,5 @@ export const LocationSection: React.FC<LocationSectionProps> = ({
     </Card>
   );
 };
+
+export default LocationSection;

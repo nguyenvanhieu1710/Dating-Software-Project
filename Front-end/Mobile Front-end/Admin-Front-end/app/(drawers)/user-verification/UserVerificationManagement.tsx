@@ -16,6 +16,7 @@ export default function UserVerificationManagement() {
   const [openModal, setOpenModal] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
 
   const fetchVerifications = async () => {
     setLoading(true);
@@ -37,8 +38,27 @@ export default function UserVerificationManagement() {
     }
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      // console.log("Fetching current user...");
+      const response = await adminUserService.getCurrentUser();
+      // console.log("Current User: ", response.data);
+      if (response.success && response.data) {
+        setCurrentUser(response.data);
+      } else {
+        setError(response.message || "Failed to load current user");
+      }
+    } catch (err) {
+      console.error("Error fetching current user:", err);
+      setError("An error occurred while loading current user");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     fetchVerifications();
+    fetchCurrentUser();
   }, []);
 
   const handleSelectVerification = (verification: IUserVerification) => {
@@ -53,10 +73,15 @@ export default function UserVerificationManagement() {
 
   const handleVerified = async (id: number, notes: string) => {
     try {
+      if (!currentUser?.id) {
+        console.log("Current user not loaded yet");
+        return;
+      }
+      // console.log("Current user ID: ", currentUser.id);
       const response = await adminUserService.updateVerification(id, {
         status: "verified",
         notes,
-        reviewed_by: 5, // TODO: Thay bằng admin ID thực tế
+        reviewed_by: currentUser.id,
       });
 
       if (response.success && response.data) {
@@ -78,7 +103,7 @@ export default function UserVerificationManagement() {
       const response = await adminUserService.updateVerification(id, {
         status: "rejected",
         notes: `${reason}${notes ? ` - ${notes}` : ""}`,
-        reviewed_by: 1, // TODO: Thay bằng admin ID thực tế
+        reviewed_by: currentUser.id,
       });
 
       if (response.success && response.data) {

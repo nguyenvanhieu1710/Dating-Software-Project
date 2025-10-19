@@ -1,17 +1,16 @@
-// components/UsersChart.tsx
 import React from "react";
 import { PieChart } from "react-native-gifted-charts";
 import { useTheme } from "react-native-paper";
 import ChartCard from "./ChartCard";
 
-export default function UsersChart() {
+export default function UsersChart({ users }: { users: any }) {
   const theme = useTheme();
 
   const data = [
-    { value: 8500, color: theme.colors.primary, text: "Active" },
-    { value: 320, color: theme.colors.error, text: "Banned" },
-    { value: 2500, color: theme.colors.secondary, text: "Unverified" },
-    { value: 200, color: theme.colors.outline, text: "Deleted" },
+    { value: users.filter((user: any) => user.status === "active").length, color: theme.colors.primary, text: "Active" },
+    { value: users.filter((user: any) => user.status === "banned").length, color: theme.colors.error, text: "Banned" },
+    { value: users.filter((user: any) => user.status === "unverified").length, color: theme.colors.secondary, text: "Unverified" },
+    { value: users.filter((user: any) => user.status === "deleted").length, color: theme.colors.outline, text: "Deleted" },
   ];
 
   return (

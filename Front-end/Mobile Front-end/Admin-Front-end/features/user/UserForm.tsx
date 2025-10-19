@@ -287,9 +287,9 @@ export default function UserForm({ initialData, onSubmit, onCancel }: Props) {
             }
             options={[
               { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" },
               { label: "Banned", value: "banned" },
-              { label: "Suspended", value: "suspended" },
+              { label: "Unverified", value: "unverified" },
+              { label: "Deleted", value: "deleted" },
             ]}
           />
         </CollapsibleSection>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Platform } from 'react-native';
 import { Card, Text, useTheme, RadioButton, Menu, Button } from 'react-native-paper';
-import { FormInput } from './FormInput';
+import FormInput from './FormInput';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -16,7 +16,7 @@ interface BasicInfoSectionProps {
   onUpdateField: (field: string, value: string) => void;
 }
 
-export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
+const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   formData,
   onUpdateField
 }) => {
@@ -157,3 +157,5 @@ export const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
     </Card>
   );
 };
+
+export default BasicInfoSection;

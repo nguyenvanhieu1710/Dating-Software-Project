@@ -7,7 +7,7 @@ interface ProfilePhotoProps {
   photos?: IPhoto[];
 }
 
-export const ProfilePhoto: React.FC<ProfilePhotoProps> = ({ photos = [] }) => {
+const ProfilePhoto: React.FC<ProfilePhotoProps> = ({ photos = [] }) => {
   const theme = useTheme();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
@@ -129,3 +129,5 @@ export const ProfilePhoto: React.FC<ProfilePhotoProps> = ({ photos = [] }) => {
     </View>
   );
 };
+
+export default ProfilePhoto;

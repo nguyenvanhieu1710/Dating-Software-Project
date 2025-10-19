@@ -22,6 +22,7 @@ export default function LikesScreen() {
           currentUser.data.id,
           "like"
         );
+        // console.log("Users who liked you:", response.data);
         setUsers(response.data);
       } catch (err) {
         console.error("Error fetching users:", err);

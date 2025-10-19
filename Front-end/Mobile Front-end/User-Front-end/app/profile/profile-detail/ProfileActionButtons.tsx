@@ -12,7 +12,7 @@ interface ProfileActionButtonsProps {
   userId: string;
 }
 
-export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
+const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
   userId,
 }) => {
   const theme = useTheme();
@@ -145,3 +145,5 @@ export const ProfileActionButtons: React.FC<ProfileActionButtonsProps> = ({
     </Surface>
   );
 };
+
+export default ProfileActionButtons;

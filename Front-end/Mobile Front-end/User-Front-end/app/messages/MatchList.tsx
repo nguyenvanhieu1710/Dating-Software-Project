@@ -2,14 +2,14 @@ import React from "react";
 import { FlatList, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Avatar, Button, Card, List, Text, useTheme } from "react-native-paper";
-import { Match } from "@/services/matchApi";
+import { IMatch } from "@/types/matche";
 
 export default function MatchList({
   matches,
   isLoading,
   onPressMatch,
 }: {
-  matches: Match[];
+  matches: IMatch[];
   isLoading: boolean;
   onPressMatch: (id: number) => void;
 }) {
@@ -55,7 +55,7 @@ export default function MatchList({
                   <Avatar.Image
                     size={70}
                     source={{
-                      uri: item.avatar,
+                      uri: item.photo_url,
                     }}
                   />
                   <Text
@@ -67,7 +67,7 @@ export default function MatchList({
                     }}
                     numberOfLines={1}
                   >
-                    {item.name || "Unknown"}
+                    {item.first_name || "Unknown"}
                   </Text>
                 </View>
               </Button>
@@ -81,6 +81,12 @@ export default function MatchList({
             left={(props) => (
               <Ionicons name="heart-outline" size={32} color="#9CA3AF" />
             )}
+            titleStyle={{
+              fontFamily: theme.fonts.bodyLarge.fontFamily,
+            }}
+            descriptionStyle={{
+              fontFamily: theme.fonts.bodyLarge.fontFamily,
+            }}
           />
         )}
       </Card.Content>

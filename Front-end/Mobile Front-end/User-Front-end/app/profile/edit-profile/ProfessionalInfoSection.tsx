@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, Text, useTheme } from "react-native-paper";
-import { FormInput } from "./FormInput";
+import FormInput from "./FormInput";
 
 interface ProfessionalInfoSectionProps {
   formData: {
@@ -11,7 +11,7 @@ interface ProfessionalInfoSectionProps {
   onUpdateField: (field: string, value: string) => void;
 }
 
-export const ProfessionalInfoSection: React.FC<
+const ProfessionalInfoSection: React.FC<
   ProfessionalInfoSectionProps
 > = ({ formData, onUpdateField }) => {
   const theme = useTheme();
@@ -59,3 +59,5 @@ export const ProfessionalInfoSection: React.FC<
     </Card>
   );
 };
+
+export default ProfessionalInfoSection;

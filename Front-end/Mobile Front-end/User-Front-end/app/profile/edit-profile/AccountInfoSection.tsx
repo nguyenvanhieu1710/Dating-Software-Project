@@ -10,7 +10,7 @@ interface AccountInfoSectionProps {
   popularityScore: number;
 }
 
-export const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({
+const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({
   userId,
   createdAt,
   updatedAt,
@@ -185,3 +185,5 @@ export const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({
     </Card>
   );
 };
+
+export default AccountInfoSection;

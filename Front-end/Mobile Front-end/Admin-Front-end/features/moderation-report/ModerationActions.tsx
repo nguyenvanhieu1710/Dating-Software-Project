@@ -35,7 +35,7 @@ export default function ModerationActionButtons({
     report?.status === "resolved" || report?.status === "dismissed";
 
   const btnBaseStyle = {
-    minWidth: compact ? 64 : 96,
+    minWidth: compact ? 56 : 64,
     marginRight: 8,
     borderRadius: 8,
   } as const;
@@ -52,7 +52,6 @@ export default function ModerationActionButtons({
       <Button
         mode="outlined"
         onPress={() => onEdit?.(report)}
-        contentStyle={{ paddingVertical: 6 }}
         style={{ ...btnBaseStyle }}
         compact={compact}
         accessibilityLabel={`Edit report ${report.id}`}
@@ -65,7 +64,6 @@ export default function ModerationActionButtons({
         mode="text"
         onPress={() => onActionSelect?.(report, "dismiss")}
         disabled={isImmutable}
-        contentStyle={{ paddingVertical: 6 }}
         style={{ ...btnBaseStyle }}
         compact={compact}
         accessibilityLabel={`Dismiss report ${report.id}`}
@@ -78,7 +76,6 @@ export default function ModerationActionButtons({
         mode="contained"
         onPress={() => onActionSelect?.(report, "warn")}
         disabled={isImmutable}
-        contentStyle={{ paddingVertical: 6 }}
         style={{ ...btnBaseStyle }}
         compact={compact}
         accessibilityLabel={`Warn user for report ${report.id}`}
@@ -91,7 +88,6 @@ export default function ModerationActionButtons({
         mode="contained"
         onPress={() => onActionSelect?.(report, "suspend")}
         disabled={isImmutable}
-        contentStyle={{ paddingVertical: 6 }}
         style={{ ...btnBaseStyle }}
         compact={compact}
         accessibilityLabel={`Suspend user for report ${report.id}`}
@@ -104,7 +100,6 @@ export default function ModerationActionButtons({
         mode="contained"
         onPress={() => onActionSelect?.(report, "ban")}
         disabled={isImmutable}
-        contentStyle={{ paddingVertical: 6 }}
         style={{
           ...btnBaseStyle,
           backgroundColor: theme.colors.error,

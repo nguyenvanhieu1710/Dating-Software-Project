@@ -337,6 +337,7 @@ export default function ExploreDetailScreen() {
             <SwipeCard
               ref={swipeRef}
               user={user}
+              photos={[]}
               photoIndex={currentPhotoIndex}
               onPhotoNav={handlePhotoNav}
               onOpenProfile={handleOpenProfile}

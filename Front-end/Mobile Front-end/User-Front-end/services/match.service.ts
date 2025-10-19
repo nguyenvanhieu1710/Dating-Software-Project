@@ -2,28 +2,13 @@ import { httpService } from './http.service';
 import {
   IMatch,
   ApiResponse,
+  MatchQueryParams,
+  MatchStats,
+  MutualMatchResult,
 } from '@/types/matche';
 
-interface MatchQueryParams {
-  page?: number;
-  limit?: number;
-  status?: string;
-}
-
-interface MatchStats {
-  total_matches: number;
-  matches_this_week: number;
-  matches_this_month: number;
-}
-
-interface MutualMatchResult {
-  isMutual: boolean;
-  user1LikedUser2: boolean;
-  user2LikedUser1: boolean;
-}
-
 class MatchService {
-  private readonly basePath = '/matches';
+  private readonly basePath = '/match';
 
   // ===== MATCH OPERATIONS =====
 

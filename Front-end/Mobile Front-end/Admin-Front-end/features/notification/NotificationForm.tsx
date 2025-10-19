@@ -12,7 +12,6 @@ const useNotificationForm = (initialData: INotification | null) => {
   const [title, setTitle] = React.useState(initialData?.title ?? "");
   const [body, setBody] = React.useState(initialData?.body ?? "");
   const [data, setData] = React.useState(JSON.stringify(initialData?.data ?? {}, null, 2));
-  const [isRead, setIsRead] = React.useState(initialData?.is_read ?? false);
 
   const validateForm = (): string[] => {
     const notificationData: CreateNotificationRequest = {
@@ -20,7 +19,6 @@ const useNotificationForm = (initialData: INotification | null) => {
       title,
       body,
       data: tryParseJson(data),
-      is_read: isRead,
     };
     return adminNotificationService.validateNotificationData(notificationData);
   };
@@ -30,7 +28,6 @@ const useNotificationForm = (initialData: INotification | null) => {
     title,
     body,
     data: tryParseJson(data),
-    is_read: isRead,
   });
 
   const tryParseJson = (jsonStr: string): Record<string, any> | undefined => {
@@ -42,8 +39,8 @@ const useNotificationForm = (initialData: INotification | null) => {
   };
 
   return {
-    formState: { userId, title, body, data, isRead },
-    setters: { setUserId, setTitle, setBody, setData, setIsRead },
+    formState: { userId, title, body, data },
+    setters: { setUserId, setTitle, setBody, setData },
     validateForm,
     getFormData,
   };
@@ -53,9 +50,10 @@ type Props = {
   initialData: INotification | null;
   onSubmit: (notification: CreateNotificationRequest) => void;
   onCancel: () => void;
+  isGlobal?: boolean;
 };
 
-export default function NotificationForm({ initialData, onSubmit, onCancel }: Props) {
+export default function NotificationForm({ initialData, onSubmit, onCancel, isGlobal }: Props) {
   const theme = useTheme();
   const [expandedSections, setExpandedSections] = React.useState({
     basic: true,
@@ -118,13 +116,15 @@ export default function NotificationForm({ initialData, onSubmit, onCancel }: Pr
           onToggle={() => toggleSection("basic")}
           requiredFields
         >
-          <TextField
-            label="User ID"
-            value={formState.userId}
-            onChangeText={setters.setUserId}
-            placeholder="Enter User ID"
-            keyboardType="numeric"
-          />
+          {!isGlobal && (
+            <TextField
+              label="User ID"
+              value={formState.userId}
+              onChangeText={setters.setUserId}
+              placeholder="Enter User ID"
+              keyboardType="numeric"
+            />
+          )}
           <TextField
             label="Title"
             value={formState.title}
@@ -138,20 +138,13 @@ export default function NotificationForm({ initialData, onSubmit, onCancel }: Pr
             placeholder="Enter notification body"
             multiline
           />
-          <TextField
+          {/* <TextField
             label="Data (JSON)"
             value={formState.data}
             onChangeText={setters.setData}
             placeholder='Enter data as JSON (e.g., {"type": "match"})'
             multiline
-          />
-          <View style={styles.switchContainer}>
-            <Text style={styles.switchLabel}>Read</Text>
-            <Switch
-              value={formState.isRead}
-              onValueChange={setters.setIsRead}
-            />
-          </View>
+          /> */}
         </CollapsibleSection>
       </ScrollView>
 

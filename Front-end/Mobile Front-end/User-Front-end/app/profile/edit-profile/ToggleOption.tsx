@@ -9,7 +9,7 @@ interface ToggleOptionProps {
   description?: string;
 }
 
-export const ToggleOption: React.FC<ToggleOptionProps> = ({
+const ToggleOption: React.FC<ToggleOptionProps> = ({
   label,
   value,
   onValueChange,
@@ -48,6 +48,8 @@ export const ToggleOption: React.FC<ToggleOptionProps> = ({
     </View>
   );
 };
+
+export default ToggleOption;
 
 const styles = StyleSheet.create({
   container: {

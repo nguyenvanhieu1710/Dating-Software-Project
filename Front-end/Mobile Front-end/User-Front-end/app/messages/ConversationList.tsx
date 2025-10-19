@@ -2,14 +2,15 @@ import React from "react";
 import { FlatList, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Avatar, Badge, Card, List, Text, useTheme } from "react-native-paper";
-import { Match } from "@/services/matchApi";
+import { IMatch } from "@/types/matche";
+import { matchService } from "@/services/match.service";
 
 export default function ConversationList({
   conversations,
   isLoading,
   onPressConversation,
 }: {
-  conversations: Match[];
+  conversations: IMatch[];
   isLoading: boolean;
   onPressConversation: (id: number) => void;
 }) {
@@ -38,7 +39,7 @@ export default function ConversationList({
             }
             renderItem={({ item }) => (
               <List.Item
-                title={item.name}
+                title={item.first_name}
                 description={
                   item.message_count > 0
                     ? "Tap to view conversation"
@@ -54,7 +55,7 @@ export default function ConversationList({
                   <Avatar.Image
                     size={48}
                     source={{
-                      uri: item.avatar,
+                      uri: item.photo_url,
                     }}
                   />
                 )}
@@ -73,7 +74,7 @@ export default function ConversationList({
                         marginRight: 24,
                       }}
                     >
-                      {item.timeAgo}
+                      {matchService.formatRelativeTime(item.last_message_at)}
                     </Text>
                     {item.message_count > 0 && (
                       <Badge

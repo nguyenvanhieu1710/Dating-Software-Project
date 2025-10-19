@@ -14,7 +14,7 @@ interface SafetyResourceCardProps {
   onPress: () => void;
 }
 
-export const SafetyResourceCard: React.FC<SafetyResourceCardProps> = ({
+const SafetyResourceCard: React.FC<SafetyResourceCardProps> = ({
   title,
   description,
   icon,
@@ -95,3 +95,5 @@ export const SafetyResourceCard: React.FC<SafetyResourceCardProps> = ({
     </TouchableRipple>
   );
 };
+
+export default SafetyResourceCard;

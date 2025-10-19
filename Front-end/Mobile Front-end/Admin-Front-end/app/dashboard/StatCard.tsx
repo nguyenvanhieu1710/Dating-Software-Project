@@ -1,4 +1,3 @@
-// components/StatCard.tsx
 import React from "react";
 import { View } from "react-native";
 import { Card, Text, useTheme } from "react-native-paper";

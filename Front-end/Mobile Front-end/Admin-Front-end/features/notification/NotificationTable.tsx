@@ -77,28 +77,28 @@ export default function NotificationTable({ notifications, onEdit, onDelete }: P
       label: "Sent At",
       render: (item: INotification & { id: number; sent_at_formatted?: string }) => (
         <Text style={styles.cellText}>
-          {item.sent_at_formatted || new Date(item.sent_at).toLocaleDateString()}
+          {item.sent_at_formatted || new Date(item.sent_at || "").toLocaleDateString()}
         </Text>
       ),
     },
-    {
-      key: "read_at",
-      label: "Read At",
-      render: (item: INotification & { id: number; read_at_formatted?: string }) => (
-        <Text style={styles.cellText}>
-          {item.read_at_formatted || new Date(item.read_at || "").toLocaleDateString()}
-        </Text>
-      ),
-    },
-    {
-      key: "created_at",
-      label: "Created At",
-      render: (item: INotification & { id: number; created_at_formatted?: string }) => (
-        <Text style={styles.cellText}>
-          {item.created_at_formatted || new Date(item.created_at).toLocaleDateString()}
-        </Text>
-      ),
-    },
+    // {
+    //   key: "read_at",
+    //   label: "Read At",
+    //   render: (item: INotification & { id: number; read_at_formatted?: string }) => (
+    //     <Text style={styles.cellText}>
+    //       {item.read_at_formatted || new Date(item.read_at || "").toLocaleDateString()}
+    //     </Text>
+    //   ),
+    // },
+    // {
+    //   key: "created_at",
+    //   label: "Created At",
+    //   render: (item: INotification & { id: number; created_at_formatted?: string }) => (
+    //     <Text style={styles.cellText}>
+    //       {item.created_at_formatted || new Date(item.created_at || "").toLocaleDateString()}
+    //     </Text>
+    //   ),
+    // },
   ];
 
   const renderActions = (notification: INotification & { id: number }) => {

@@ -14,7 +14,7 @@ interface FormInputProps {
     maxLength?: number;
 }
 
-export const FormInput: React.FC<FormInputProps> = ({
+const FormInput: React.FC<FormInputProps> = ({
     label,
     value,
     onChangeText,
@@ -58,6 +58,8 @@ export const FormInput: React.FC<FormInputProps> = ({
         </View>
     );
 };
+
+export default FormInput;
 
 const styles = StyleSheet.create({
     container: {

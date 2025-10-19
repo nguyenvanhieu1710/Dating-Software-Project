@@ -9,7 +9,7 @@ interface GoalsSectionProps {
   onToggleGoal: (goal: string) => void;
 }
 
-export const GoalsSection: React.FC<GoalsSectionProps> = ({
+const GoalsSection: React.FC<GoalsSectionProps> = ({
   goals,
   selectedGoals,
   onToggleGoal,
@@ -43,6 +43,8 @@ export const GoalsSection: React.FC<GoalsSectionProps> = ({
     </Card>
   );
 };
+
+export default GoalsSection;
 
 const styles = StyleSheet.create({
   card: {

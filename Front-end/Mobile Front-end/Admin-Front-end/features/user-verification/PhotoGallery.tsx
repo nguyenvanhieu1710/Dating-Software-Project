@@ -62,7 +62,7 @@ export default function PhotoGallery({ photos }: Props) {
                 activeOpacity={0.8}
               >
                 <Image
-                  source={{ uri: photo }}
+                  source={{ uri: `${process.env.EXPO_PUBLIC_API_URL}${photo}` }}
                   style={{ width: "100%", height: "100%", resizeMode: "cover" }}
                 />
               </TouchableOpacity>

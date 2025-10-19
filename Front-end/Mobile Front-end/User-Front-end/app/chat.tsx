@@ -6,6 +6,7 @@ import TypingIndicator from "./chat/TypingIndicator";
 import SuggestionPopup from "./chat/SuggestionPopup";
 import ChatInput from "./chat/ChatInput";
 import ChatMenuPopup from "./chat/ChatMenuPopup";
+import ReportUserModal from "./chat/ReportUserModal";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,6 +20,8 @@ import {
 } from "@/services/userApi";
 import { io, Socket } from "socket.io-client";
 import { DefaultEventsMap } from "@socket.io/component-emitter";
+import { CreateReportRequest } from "@/types/moderation-report";
+import { moderationService } from "@/services/moderation.service";
 
 export default function ChatScreen() {
   const { matchId } = useLocalSearchParams();
@@ -42,6 +45,7 @@ export default function ChatScreen() {
   const [suggestionDismissed, setSuggestionDismissed] = useState(false); // remember user dismissed in this session
   const prevMessageRef = useRef("");
   const [menuVisible, setMenuVisible] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
@@ -457,6 +461,7 @@ export default function ChatScreen() {
         }}
         onReport={() => {
           setMenuVisible(false);
+          setReportVisible(true);
           console.log("Report pressed");
         }}
         onBlock={async () => {
@@ -513,6 +518,35 @@ export default function ChatScreen() {
           if (isTypingRef.current) {
             isTypingRef.current = false;
             emitTyping(false);
+          }
+        }}
+      />
+
+      {/* Modal report */}
+      <ReportUserModal
+        visible={reportVisible}
+        userId={otherUser?.id?.toString() || ""}
+        onClose={() => setReportVisible(false)}
+        onSubmit={async (data) => {
+          try {
+            if (!currentUserId || !otherUser?.id) return;
+            const reportData: CreateReportRequest = {
+              reporter_id: currentUserId,
+              reported_user_id: otherUser.id,
+              content_type: "user",
+              reason: data.reason,
+              description: data.description,
+            };
+            const response = await moderationService.createReport(reportData);
+            if (response.success) {
+              alert("User reported successfully");
+            } else {
+              alert("Failed to submit report");
+            }
+            setReportVisible(false);
+          } catch (err) {
+            console.error("Error reporting user:", err);
+            alert("An error occurred while reporting");
           }
         }}
       />

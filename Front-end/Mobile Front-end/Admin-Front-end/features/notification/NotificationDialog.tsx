@@ -7,11 +7,18 @@ import { CreateNotificationRequest, INotification } from "@/types/notification";
 type Props = {
   visible: boolean;
   notification: INotification | null;
+  isGlobal?: boolean;
   onClose: () => void;
   onSave: (notification: CreateNotificationRequest) => void;
 };
 
-export default function NotificationDialog({ visible, notification, onClose, onSave }: Props) {
+export default function NotificationDialog({
+  visible,
+  notification,
+  isGlobal,
+  onClose,
+  onSave,
+}: Props) {
   const theme = useTheme();
 
   const styles = StyleSheet.create({
@@ -47,10 +54,25 @@ export default function NotificationDialog({ visible, notification, onClose, onS
     <Portal>
       <Dialog visible={visible} onDismiss={onClose} style={styles.dialog}>
         <Dialog.Title style={styles.title}>
-          {notification ? "Edit Notification" : "Create New Notification"}
+          {isGlobal
+            ? "Send Notification to All Users"
+            : notification
+            ? "Edit Notification"
+            : "Create New Notification"}
         </Dialog.Title>
         <Dialog.Content style={styles.content}>
-          <NotificationForm initialData={notification} onSubmit={onSave} onCancel={onClose} />
+          <NotificationForm
+            initialData={notification}
+            onSubmit={(notificationData) => {
+              if (isGlobal) {
+                onSave(notificationData);
+              } else {
+                onSave(notificationData);
+              }
+            }}
+            onCancel={onClose}
+            isGlobal={isGlobal}
+          />
         </Dialog.Content>
       </Dialog>
     </Portal>

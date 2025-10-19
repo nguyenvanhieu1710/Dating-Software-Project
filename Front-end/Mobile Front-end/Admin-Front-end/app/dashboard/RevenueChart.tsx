@@ -1,4 +1,3 @@
-// components/RevenueChart.tsx
 import React from "react";
 import { BarChart } from "react-native-gifted-charts";
 import { useTheme } from "react-native-paper";

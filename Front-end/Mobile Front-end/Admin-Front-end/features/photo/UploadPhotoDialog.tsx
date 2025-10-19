@@ -3,14 +3,14 @@ import {
   Dialog,
   Portal,
   Button,
-  Text,
-  TextInput,
   ActivityIndicator,
   useTheme,
+  Menu,
 } from "react-native-paper";
 
 type Props = {
   visible: boolean;
+  users: any;
   userId: string;
   loading?: boolean;
   onClose: () => void;
@@ -21,6 +21,7 @@ type Props = {
 
 export default function UploadPhotoDialog({
   visible,
+  users,
   userId,
   loading = false,
   onClose,
@@ -29,6 +30,10 @@ export default function UploadPhotoDialog({
   onPickFromComputer,
 }: Props) {
   const theme = useTheme();
+  const [menuVisible, setMenuVisible] = React.useState(false);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
 
   return (
     <Portal>
@@ -39,13 +44,38 @@ export default function UploadPhotoDialog({
           Upload Photo
         </Dialog.Title>
         <Dialog.Content>
-          <TextInput
-            label="User ID"
-            value={userId}
-            onChangeText={onChangeUserId}
-            keyboardType="numeric"
-            style={{ marginBottom: 16 }}
-          />
+          <Menu
+            visible={menuVisible}
+            onDismiss={closeMenu}
+            anchor={
+              <Button
+                mode="outlined"
+                onPress={openMenu}
+                disabled={loading}
+                style={{ marginBottom: 16 }}
+                textColor={theme.colors.onSurface}
+              >
+                {userId
+                  ? users.find((u: any) => u.id === userId)?.first_name || "Select a user"
+                  : "Select a user"}
+              </Button>
+            }
+          >
+            {users.length > 0 ? (
+              users.map((user: any) => (
+                <Menu.Item
+                  key={user.id}
+                  onPress={() => {
+                    onChangeUserId(user.id);
+                    closeMenu();
+                  }}
+                  title={`${user.id} - ${user.first_name} (${user.email})`}
+                />
+              ))
+            ) : (
+              <Menu.Item title="No users available" disabled />
+            )}
+          </Menu>
 
           <Button
             mode="contained"

@@ -8,7 +8,7 @@ interface SelectableItemProps {
     onPress: () => void;
 }
 
-export const SelectableItem: React.FC<SelectableItemProps> = ({ 
+const SelectableItem: React.FC<SelectableItemProps> = ({ 
     label, 
     selected, 
     onPress 
@@ -36,6 +36,8 @@ export const SelectableItem: React.FC<SelectableItemProps> = ({
         </Chip>
     );
 };
+
+export default SelectableItem;
 
 const styles = StyleSheet.create({
     chip: {

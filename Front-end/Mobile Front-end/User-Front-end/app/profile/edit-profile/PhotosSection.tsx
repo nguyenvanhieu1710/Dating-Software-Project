@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, Text, useTheme } from "react-native-paper";
-import { PhotoGrid } from "./PhotoGrid";
+import PhotoGrid from "./PhotoGrid";
 
 interface PhotoItem {
   id: number;
@@ -15,7 +15,7 @@ interface PhotosSectionProps {
   isUploading?: boolean;
 }
 
-export const PhotosSection: React.FC<PhotosSectionProps> = ({
+const PhotosSection: React.FC<PhotosSectionProps> = ({
   photos,
   maxPhotos = 5,
   onAddPhoto,
@@ -53,3 +53,5 @@ export const PhotosSection: React.FC<PhotosSectionProps> = ({
     </Card>
   );
 };
+
+export default PhotosSection;

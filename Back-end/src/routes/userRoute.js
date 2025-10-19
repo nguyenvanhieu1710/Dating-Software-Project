@@ -29,7 +29,7 @@ router.get("/verifications/:user_id", authenticateToken, (req, res) =>
 );
 // admin xác minh và không xác minh
 router.put("/verifications/:id", authenticateToken, (req, res) =>
-  userController.updateVerifications(req, res)
+  userController.updateVerification(req, res)
 );
 // Block routes
 // get all block

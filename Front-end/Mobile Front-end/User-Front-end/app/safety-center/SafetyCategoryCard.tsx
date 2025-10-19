@@ -14,7 +14,7 @@ interface SafetyCategoryCardProps {
   onPress: () => void;
 }
 
-export const SafetyCategoryCard: React.FC<SafetyCategoryCardProps> = ({
+const SafetyCategoryCard: React.FC<SafetyCategoryCardProps> = ({
   title,
   description,
   icon,
@@ -123,3 +123,5 @@ export const SafetyCategoryCard: React.FC<SafetyCategoryCardProps> = ({
     </TouchableRipple>
   );
 };
+
+export default SafetyCategoryCard;

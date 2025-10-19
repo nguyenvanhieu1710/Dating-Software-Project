@@ -65,7 +65,7 @@ export default function PhotoManagement() {
     try {
       setLoading(true);
       const res = await adminUserService.getAllUsers();
-      // console.log(res);
+      // console.log("Users:", res);
       if (res.success && Array.isArray(res.data)) {
         setUsers(res.data);
       } else {
@@ -227,6 +227,7 @@ export default function PhotoManagement() {
       {/* Upload dialog */}
       <UploadPhotoDialog
         visible={showUpload}
+        users={users}
         userId={uploadUserId}
         loading={uploading}
         onClose={() => setShowUpload(false)}

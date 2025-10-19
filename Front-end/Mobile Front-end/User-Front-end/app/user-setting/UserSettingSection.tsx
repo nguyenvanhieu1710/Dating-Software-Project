@@ -7,7 +7,7 @@ interface SettingSectionProps {
   children: React.ReactNode;
 }
 
-export const SettingSection: React.FC<SettingSectionProps> = ({ title, children }) => {
+const SettingSection: React.FC<SettingSectionProps> = ({ title, children }) => {
   const theme = useTheme();
 
   return (
@@ -48,3 +48,5 @@ export const SettingSection: React.FC<SettingSectionProps> = ({ title, children 
     </Surface>
   );
 };
+
+export default SettingSection;
