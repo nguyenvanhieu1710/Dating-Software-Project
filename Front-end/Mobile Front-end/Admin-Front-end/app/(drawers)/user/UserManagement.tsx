@@ -8,6 +8,26 @@ import { adminUserService } from "@/services/admin-user.service"; // Import serv
 import { IUser } from "@/types/user";
 import { IProfile } from "@/types/profile";
 
+// Helper: Convert comma-separated lat,lng string to WKT POINT format
+const convertToWKT = (location: string | undefined): string | null => {
+  if (!location) return null;
+  try {
+    // Check if already in WKT format
+    if (location.startsWith("POINT(")) {
+      return location;
+    }
+    // Handle comma-separated lat,lng format
+    const [lat, lng] = location.split(",").map((coord) => parseFloat(coord.trim()));
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new Error("Invalid latitude or longitude");
+    }
+    return `POINT(${lng} ${lat})`; // WKT format: POINT(longitude latitude)
+  } catch (error) {
+    console.error("Error converting location to WKT:", error);
+    return null;
+  }
+};
+
 // Helper: Map từ flat API response sang nested state
 const mapFlatToNested = (flatData: any): IUser & { profile?: IProfile } => {
   const user: IUser = {
@@ -48,11 +68,17 @@ const mapFlatToNested = (flatData: any): IUser & { profile?: IProfile } => {
 
 // Helper: Map từ nested state sang flat (nếu cần gửi API flat, nhưng ở đây service gửi nested nên ít dùng)
 const mapNestedToFlat = (nestedData: IUser & { profile?: IProfile }): any => {
-  return {
+  const flatData = {
     ...nestedData,
     ...nestedData.profile,
     password: "12345678",
   };
+  // Convert location to WKT format if it exists
+  if (flatData.location) {
+    const wktLocation = convertToWKT(flatData.location);
+    flatData.location = wktLocation !== null ? wktLocation : undefined;
+  }
+  return flatData;
 };
 
 export default function UsersScreen() {
@@ -157,9 +183,9 @@ export default function UsersScreen() {
       const flatUser = mapNestedToFlat(user);
       console.log("Flat user: ", flatUser);
       if (user.id) {
-        // Cập nhật user
+        // Update user
         response = await adminUserService.updateUser(user.id, flatUser);
-        console.log("Response: ", response);
+        console.log("Response of update user: ", response);
         if (response.success) {
           // Map response flat sang nested trước khi update state
           const updatedUser = mapFlatToNested(response.data);
@@ -168,25 +194,23 @@ export default function UsersScreen() {
             prev.map((u) => (u.id === user.id ? updatedUser : u))
           );
         } else {
-          setError(response.message || "Không thể cập nhật user");
+          setError(response.message || "Can not update user");
         }
       } else {
-        // Thêm mới user (gửi nested)
-        console.log("Flat user: ", flatUser);
-
+        // Create new user
         response = await adminUserService.createUser(flatUser);
-        console.log("Response: ", response);
+        console.log("Response of create user: ", response);
         if (response.success) {
           // Map response flat sang nested trước khi add vào state
           const newUser = mapFlatToNested(response.data);
           setUsers((prev) => [...prev, newUser]);
         } else {
-          setError(response.message || "Không thể tạo user");
+          setError(response.message || "Can not create user");
         }
       }
       setOpenDialog(false);
     } catch (err) {
-      setError("Đã có lỗi xảy ra khi lưu user");
+      setError("Can not save user");
     } finally {
       setLoading(false);
     }

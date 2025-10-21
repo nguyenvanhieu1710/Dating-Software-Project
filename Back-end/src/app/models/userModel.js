@@ -20,20 +20,31 @@ class UserModel extends BaseModel {
           p.is_verified, p.is_online, p.last_seen,
           p.created_at as profile_created_at,
           p.updated_at as profile_updated_at,
-          -- Tính điểm tương thích
           (
-            CASE WHEN current_p.location = p.location THEN 10 ELSE 0 END +
-            CASE WHEN current_p.relationship_goals = p.relationship_goals THEN 15 ELSE 0 END +
             CASE WHEN current_p.education = p.education THEN 5 ELSE 0 END +
-            CASE WHEN ABS(EXTRACT(YEAR FROM AGE(current_p.dob)) - EXTRACT(YEAR FROM AGE(p.dob))) <= 5 THEN 8 ELSE 0 END +
+            CASE WHEN ABS(EXTRACT(YEAR FROM AGE(current_p.dob)) - EXTRACT(YEAR FROM AGE(p.dob))) <= 10 THEN 8 ELSE 0 END +
             COALESCE(p.popularity_score, 0)
           ) as compatibility_score
       FROM users u
       INNER JOIN profiles p ON u.id = p.user_id
       INNER JOIN profiles current_p ON current_p.user_id = $1
       WHERE u.id != $1
-        AND u.status = 'active'
         AND p.first_name IS NOT NULL        
+        AND NOT EXISTS (
+            SELECT 1 FROM user_blocks b 
+            WHERE (b.blocker_id = $1 AND b.blocked_id = u.id)
+              OR (b.blocker_id = u.id AND b.blocked_id = $1)
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM matches m
+            WHERE (m.user1_id = $1 AND m.user2_id = u.id)
+              OR (m.user1_id = u.id AND m.user2_id = $1)
+        )
+        AND NOT EXISTS (
+        SELECT 1 FROM swipes s
+        WHERE s.swiper_user_id = $1
+          AND s.swiped_user_id = u.id
+        )
       ORDER BY compatibility_score DESC, p.last_active_at DESC
       LIMIT 50
     `;

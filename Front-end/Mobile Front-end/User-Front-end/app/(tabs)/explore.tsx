@@ -9,6 +9,8 @@ import { goalService } from "@/services/goal.service";
 import { IInterest } from "@/types/interest";
 import { IGoal } from "@/types/goal";
 import { router } from "expo-router";
+import NotificationToast from "../notification/Notification";
+import { INotification } from "@/types/notification";
 
 export default function ExploreScreen() {
   const theme = useTheme();
@@ -38,8 +40,13 @@ export default function ExploreScreen() {
     router.push(`/explore-detail?name=${encodeURIComponent(item.name)}`);
   }
 
+  function handleNotificationPress(notification: INotification): void {
+    console.log("Notification pressed:", notification);
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
+      <NotificationToast onPress={handleNotificationPress} />
       <StatusBar style="dark" />
       <ExploreHeader title="Explore" />
 

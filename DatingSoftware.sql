@@ -752,7 +752,7 @@ COMMENT ON COLUMN moderation_reports.reported_content_id IS 'ID of the specific 
 COMMENT ON COLUMN moderation_reports.content_type IS 'Type of content being reported (profile, photo, message, etc.)';
 COMMENT ON COLUMN moderation_reports.reason IS 'Category of the report (harassment, inappropriate_content, etc.)';
 COMMENT ON COLUMN moderation_reports.description IS 'Detailed description of the issue';
-COMMENT ON COLUMN moderation_reports.status IS 'Current status of the report (pending, in_review, resolved, dismissed)';
+COMMENT ON COLUMN moderation_reports.status IS 'Current status of the report (pending, approved, rejected, escalated)';
 COMMENT ON COLUMN moderation_reports.priority IS 'Priority level for handling the report (low, medium, high, critical)';
 COMMENT ON COLUMN moderation_reports.admin_notes IS 'Internal notes from the moderation team';
 COMMENT ON COLUMN moderation_reports.resolved_by IS 'Admin who resolved the report';

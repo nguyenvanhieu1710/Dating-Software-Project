@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { IconButton, Text, useTheme } from "react-native-paper";
-import { User } from "@/services/userApi";
+import { IUserProfile } from "@/types/user";
 import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { IPhoto } from "@/types/photo";
 
@@ -20,7 +20,7 @@ export type SwipeCardHandle = {
 };
 
 type Props = {
-  user: User;
+  user: IUserProfile;
   photos: IPhoto[];
   photoIndex: number;
   onPhotoNav: (dir: "left" | "right") => void;
@@ -33,6 +33,18 @@ const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
     const theme = useTheme();
     const swipeAnim = useRef(new Animated.Value(0)).current;
     const rotateAnim = useRef(new Animated.Value(0)).current;
+
+    // calculate age from dob
+    const calculateAge = (dob: string) => {
+      const today = new Date();
+      const birthDate = new Date(dob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const month = today.getMonth() - birthDate.getMonth();
+      if (month < 0 || (month === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
 
     // expose imperative swipe function so parent buttons can trigger animation
     useImperativeHandle(ref, () => ({
@@ -206,7 +218,7 @@ const SwipeCard = React.forwardRef<SwipeCardHandle, Props>(
                   fontFamily: theme.fonts.bodyLarge.fontFamily,
                 }}
               >
-                {user.name}, {user.age}
+                {user.first_name}, {calculateAge(user.dob)}
               </Text>
               <Text
                 style={{

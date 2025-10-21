@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Card, Text, useTheme } from "react-native-paper";
-import { SelectableItem } from "./SelectableItem";
+import SelectableItem from "./SelectableItem";
 
 interface GoalsSectionProps {
   goals: string[];

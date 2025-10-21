@@ -14,6 +14,8 @@ import UpgradeTier from "../profile/UpgradeTier";
 import { getUserProfile, getCurrentUserId, User } from "../../services/userApi";
 import { consumableService } from "../../services/comsumable.service";
 import { IConsumable } from "../../types/consumable";
+import NotificationToast from "../notification/Notification";
+import { INotification } from "@/types/notification";
 
 export default function ProfileScreen() {
   const theme = useTheme();
@@ -46,7 +48,7 @@ export default function ProfileScreen() {
     if (!userId) return;
     try {
       const response = await consumableService.getConsumablesByUserId(userId);
-      console.log("Consumable of user: ", response);
+      // console.log("Consumable of user: ", response);
       if (response.success && response.data) {
         setConsumable(response.data);
       }
@@ -72,11 +74,16 @@ export default function ProfileScreen() {
   const handleUpgrade = () => router.push("/subscriptions");
   const handleConsumable = () => router.push("/consumable");
 
+  function handleNotificationPress(notification: INotification): void {
+    console.log("Notification pressed:", notification);
+  }
+
   if (isLoading) {
     return (
       <SafeAreaView
         style={{ flex: 1, backgroundColor: theme.colors.background }}
       >
+        <NotificationToast onPress={handleNotificationPress} />
         <Header onSettings={handleSettings} onSafety={handleSafetyCenter} />
         <View
           style={{
@@ -239,7 +246,7 @@ export default function ProfileScreen() {
                   value={consumable?.boosts_balance}
                   onPress={handleConsumable}
                 />
-                <StatCard label="Subscriptions" onPress={handleUpgrade} />
+                {/* <StatCard label="Subscriptions" onPress={handleUpgrade} /> */}
               </View>
 
               <Card style={{ borderRadius: 20, padding: 20, marginBottom: 16 }}>

@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Card, Text, useTheme } from "react-native-paper";
 
 interface AccountInfoSectionProps {
-  userId: string;
+  userId: number;
   createdAt: string;
   updatedAt: string;
   lastActiveAt: string;
@@ -150,7 +150,7 @@ const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({
               {formatDate(lastActiveAt)}
             </Text>
           </View>
-          <View
+          {/* <View
             style={{
               width: "48%",
               marginBottom: 12,
@@ -179,7 +179,7 @@ const AccountInfoSection: React.FC<AccountInfoSectionProps> = ({
             >
               {popularityScore || 0}
             </Text>
-          </View>
+          </View> */}
         </View>
       </Card.Content>
     </Card>

@@ -9,7 +9,17 @@ export interface IUser {
   updated_at: string;
 }
 
-export interface IUserProfile {
+export interface IExpandUser {
+  latitude?: number;
+  longitude?: number;
+  distance?: number;
+  name?: string;
+  age?: number;
+  avatar?: string;
+  photos?: string[];
+}
+
+export interface IUserProfile extends IExpandUser {
   id: number;
   email: string;
   phone_number: string;

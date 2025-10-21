@@ -13,6 +13,16 @@ interface NotificationItemProps {
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onPress, onDelete }) => {
   const theme = useTheme();
 
+  const formattedDate = new Date(notification.sent_at).toLocaleString("vi-VN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -78,11 +88,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onPre
           style={{
             fontSize: 12,
             color: theme.colors.onSurfaceVariant,
-            fontFamily: theme.fonts.bodySmall.fontFamily,
+            fontFamily: theme.fonts.bodyLarge.fontFamily,
             marginTop: 4,
           }}
         >
-          {notification.sent_at}
+          {formattedDate}
         </Text>
       </View>
       <IconButton

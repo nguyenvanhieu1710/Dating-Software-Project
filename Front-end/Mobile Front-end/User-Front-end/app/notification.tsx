@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme, Searchbar, Button } from "react-native-paper";
+import { useTheme, Searchbar, Button, Surface } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { notificationService } from "@/services/notification.service";
 import {
@@ -18,6 +18,7 @@ import {
 import NotificationItem from "./notification/NotificationItem";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "../components/header/Header";
+import NotificationToast from "./notification/Notification";
 
 export default function NotificationListScreen() {
   const theme = useTheme();
@@ -66,7 +67,7 @@ export default function NotificationListScreen() {
         currentUserId,
         params
       );
-      console.log("response of notification: ", response);
+      // console.log("response of notification: ", response);
       if (response.success && Array.isArray(response.data)) {
         const sortedNotifications =
           notificationService.sortNotificationsBySentAt(response.data);
@@ -266,69 +267,8 @@ export default function NotificationListScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {/* <View style={{ padding: 16 }}>
-        <Text
-          style={{
-            fontSize: 24,
-            fontWeight: "700",
-            color: theme.colors.onBackground,
-            fontFamily: theme.fonts.headlineMedium.fontFamily,
-            marginBottom: 16,
-          }}
-        >
-          Notifications
-        </Text>
-        <Searchbar
-          placeholder="Search notifications..."
-          value={searchQuery}
-          onChangeText={onSearchChange}
-          style={{
-            backgroundColor: theme.colors.surface,
-            borderRadius: 12,
-            marginBottom: 12,
-          }}
-        />
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginBottom: 12,
-          }}
-        >
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Button
-              mode={filterRead === null ? "contained" : "outlined"}
-              onPress={() => toggleFilter(null)}
-              style={{ borderRadius: 8 }}
-            >
-              All
-            </Button>
-            <Button
-              mode={filterRead === false ? "contained" : "outlined"}
-              onPress={() => toggleFilter(false)}
-              style={{ borderRadius: 8 }}
-            >
-              Unread
-            </Button>
-            <Button
-              mode={filterRead === true ? "contained" : "outlined"}
-              onPress={() => toggleFilter(true)}
-              style={{ borderRadius: 8 }}
-            >
-              Read
-            </Button>
-          </View>
-          <Button
-            mode="text"
-            onPress={handleMarkAllRead}
-            disabled={notifications.every((n) => n.read_at)}
-            style={{ borderRadius: 8 }}
-          >
-            Mark All Read
-          </Button>
-        </View>
-      </View> */}
+    <Surface style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <NotificationToast onPress={handleNotificationPress} />
       <Header title="Notifications" />
       <FlatList
         data={notifications}
@@ -384,6 +324,6 @@ export default function NotificationListScreen() {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+    </Surface>
   );
 }

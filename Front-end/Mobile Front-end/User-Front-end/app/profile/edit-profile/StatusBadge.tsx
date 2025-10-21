@@ -30,7 +30,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <View style={styles.container}>
-      <Chip
+      {/* <Chip
         style={[styles.badge, { backgroundColor: getStatusColor(status) }]}
         textStyle={styles.text}
         mode="flat"
@@ -43,7 +43,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
         }}
       >
         {status.toUpperCase()}
-      </Chip>
+      </Chip> */}
       {verified && (
         <Chip
           icon={() => (

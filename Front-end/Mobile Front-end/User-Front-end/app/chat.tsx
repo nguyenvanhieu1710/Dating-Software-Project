@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, View } from "react-native";
 import ChatHeader from "./chat/ChatHeader";
 import MessageBubble from "./chat/MessageBubble";
 import TypingIndicator from "./chat/TypingIndicator";
@@ -83,7 +83,7 @@ export default function ChatScreen() {
           offset: 0,
         }
       );
-      console.log("Response of getMessages:", response);
+      // console.log("Response of getMessages:", response);
       setMessages(response.data);
       scrollToBottom();
     } catch (error) {
@@ -268,6 +268,8 @@ export default function ChatScreen() {
         roomID: `room_${matchId}`,
         userID: currentUserId,
         userName: `User_${currentUserId}`,
+        matchId: matchId,
+        otherUserId: otherUser?.id,
       },
     });
   };
@@ -392,164 +394,171 @@ export default function ChatScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff", position: "relative" }}>
-      <ChatHeader
-        name={otherUser?.first_name || "User Name"}
-        isOnline={otherUser?.is_online || false}
-        lastSeen={otherUser?.last_seen}
-        onVideoPress={handleVideoPress}
-        onMenuPress={() => setMenuVisible(true)}
-      />
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#fff" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <View style={{ flex: 1, backgroundColor: "#fff", position: "relative" }}>
+        <ChatHeader
+          name={otherUser?.first_name || "User Name"}
+          isOnline={otherUser?.is_online || false}
+          lastSeen={otherUser?.last_seen}
+          onVideoPress={handleVideoPress}
+          onMenuPress={() => setMenuVisible(true)}
+        />
 
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={({ item }) => (
-          <MessageBubble
-            content={item.content}
-            senderName={
-              item.sender?.first_name ||
-              (item.sender_id === currentUserId
-                ? "You"
-                : otherUser?.first_name || "User")
-            }
-            time={
-              item.sent_at
-                ? new Date(item.sent_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : ""
-            }
-            isOwnMessage={item.sender_id === currentUserId}
-          />
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={({ item }) => (
+            <MessageBubble
+              content={item.content}
+              senderName={
+                item.sender?.first_name ||
+                (item.sender_id === currentUserId
+                  ? "You"
+                  : otherUser?.first_name || "User")
+              }
+              time={
+                item.sent_at
+                  ? new Date(item.sent_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : ""
+              }
+              isOwnMessage={item.sender_id === currentUserId}
+            />
+          )}
+          keyExtractor={(item) => `${item.id}_${item.sent_at}`}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ padding: 8, paddingBottom: 80 }}
+          onContentSizeChange={scrollToBottom}
+          onLayout={scrollToBottom}
+          style={{
+            flex: 1,
+            backgroundColor: "#fff",
+          }}
+        />
+
+        {typingUsers.length > 0 && (
+          <TypingIndicator name={otherUser?.first_name || "User"} />
         )}
-        keyExtractor={(item) => `${item.id}_${item.sent_at}`}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ padding: 8, paddingBottom: 80 }}
-        onContentSizeChange={scrollToBottom}
-        onLayout={scrollToBottom}
-        style={{
-          flex: 1,
-          backgroundColor: "#fff",
-        }}
-      />
 
-      {typingUsers.length > 0 && (
-        <TypingIndicator name={otherUser?.first_name || "User"} />
-      )}
+        <SuggestionPopup
+          visible={suggestionVisible && !suggestionDismissed}
+          suggestions={suggestions}
+          onSelect={(text) => {
+            setMessageText(text);
+            setSuggestionVisible(false);
+          }}
+          onClose={() => {
+            setSuggestionVisible(false);
+            setSuggestionDismissed(true);
+          }}
+        />
 
-      <SuggestionPopup
-        visible={suggestionVisible && !suggestionDismissed}
-        suggestions={suggestions}
-        onSelect={(text) => {
-          setMessageText(text);
-          setSuggestionVisible(false);
-        }}
-        onClose={() => {
-          setSuggestionVisible(false);
-          setSuggestionDismissed(true);
-        }}
-      />
-
-      <ChatMenuPopup
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        onUnmatch={() => {
-          setMenuVisible(false);
-          console.log("Unmatch pressed");
-        }}
-        onReport={() => {
-          setMenuVisible(false);
-          setReportVisible(true);
-          console.log("Report pressed");
-        }}
-        onBlock={async () => {
-          setMenuVisible(false);
-          console.log("Block pressed");
-          if (!currentUserId || !otherUser?.id) {
-            console.error("Missing currentUserId or otherUser.id");
-            return;
-          }
-          try {
-            const result = await userService.blockUser({
-              blocker_id: currentUserId, // Current user is the blocker
-              blocked_id: otherUser.id, // Other user is the blocked
-            });
-            console.log("Block successful:", result);
-            // Optionally: Show a success message or redirect
-            // e.g., router.push("/matches") to go back to matches screen
-          } catch (error) {
-            console.error("Failed to block user:", error);
-            // Optionally: Show an error message to the user
-          }
-        }}
-      />
-
-      <ChatInput
-        value={messageText}
-        onChangeText={(text) => {
-          // update local text
-          setMessageText(text);
-
-          // typing logic: if not already typing, emit true
-          if (!isTypingRef.current) {
-            isTypingRef.current = true;
-            emitTyping(true);
-          }
-
-          // reset debounce to emit false after 1500ms of inactivity
-          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(() => {
-            isTypingRef.current = false;
-            emitTyping(false);
-            typingTimeoutRef.current = null;
-          }, 1500);
-        }}
-        onSend={handleSend}
-        onFocus={() => setInputFocused(true)}
-        onBlur={() => {
-          setInputFocused(false);
-          // ensure we clear typing state and emit false
-          if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = null;
-          }
-          if (isTypingRef.current) {
-            isTypingRef.current = false;
-            emitTyping(false);
-          }
-        }}
-      />
-
-      {/* Modal report */}
-      <ReportUserModal
-        visible={reportVisible}
-        userId={otherUser?.id?.toString() || ""}
-        onClose={() => setReportVisible(false)}
-        onSubmit={async (data) => {
-          try {
-            if (!currentUserId || !otherUser?.id) return;
-            const reportData: CreateReportRequest = {
-              reporter_id: currentUserId,
-              reported_user_id: otherUser.id,
-              content_type: "user",
-              reason: data.reason,
-              description: data.description,
-            };
-            const response = await moderationService.createReport(reportData);
-            if (response.success) {
-              alert("User reported successfully");
-            } else {
-              alert("Failed to submit report");
+        <ChatMenuPopup
+          visible={menuVisible}
+          onClose={() => setMenuVisible(false)}
+          onUnmatch={() => {
+            setMenuVisible(false);
+            console.log("Unmatch pressed");
+          }}
+          onReport={() => {
+            setMenuVisible(false);
+            setReportVisible(true);
+            console.log("Report pressed");
+          }}
+          onBlock={async () => {
+            setMenuVisible(false);
+            console.log("Block pressed");
+            if (!currentUserId || !otherUser?.id) {
+              console.error("Missing currentUserId or otherUser.id");
+              return;
             }
-            setReportVisible(false);
-          } catch (err) {
-            console.error("Error reporting user:", err);
-            alert("An error occurred while reporting");
-          }
-        }}
-      />
-    </View>
+            try {
+              const result = await userService.blockUser({
+                blocker_id: currentUserId, // Current user is the blocker
+                blocked_id: otherUser.id, // Other user is the blocked
+              });
+              console.log("Block successful:", result);
+              // Optionally: Show a success message or redirect
+              // e.g., router.push("/matches") to go back to matches screen
+            } catch (error) {
+              console.error("Failed to block user:", error);
+              // Optionally: Show an error message to the user
+            }
+          }}
+        />
+
+        <ChatInput
+          value={messageText}
+          onChangeText={(text) => {
+            // update local text
+            setMessageText(text);
+
+            // typing logic: if not already typing, emit true
+            if (!isTypingRef.current) {
+              isTypingRef.current = true;
+              emitTyping(true);
+            }
+
+            // reset debounce to emit false after 1500ms of inactivity
+            if (typingTimeoutRef.current)
+              clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+              isTypingRef.current = false;
+              emitTyping(false);
+              typingTimeoutRef.current = null;
+            }, 1500);
+          }}
+          onSend={handleSend}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => {
+            setInputFocused(false);
+            // ensure we clear typing state and emit false
+            if (typingTimeoutRef.current) {
+              clearTimeout(typingTimeoutRef.current);
+              typingTimeoutRef.current = null;
+            }
+            if (isTypingRef.current) {
+              isTypingRef.current = false;
+              emitTyping(false);
+            }
+          }}
+        />
+
+        {/* Modal report */}
+        <ReportUserModal
+          visible={reportVisible}
+          userId={otherUser?.id?.toString() || ""}
+          onClose={() => setReportVisible(false)}
+          onSubmit={async (data) => {
+            try {
+              if (!currentUserId || !otherUser?.id) return;
+              const reportData: CreateReportRequest = {
+                reporter_id: currentUserId,
+                reported_user_id: otherUser.id,
+                content_type: "user",
+                reason: data.reason,
+                description: data.description,
+              };
+              const response = await moderationService.createReport(reportData);
+              if (response.success) {
+                alert("User reported successfully");
+              } else {
+                alert("Failed to submit report");
+              }
+              setReportVisible(false);
+            } catch (err) {
+              console.error("Error reporting user:", err);
+              alert("An error occurred while reporting");
+            }
+          }}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }

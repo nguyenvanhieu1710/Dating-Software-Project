@@ -15,20 +15,28 @@ import {
   useTheme,
 } from "react-native-paper";
 import { getUserProfile, updateUserProfile, User } from "../services/userApi";
+import { userService } from "@/services/user.service";
 import { interestService } from "@/services/interest.service";
 import { goalService } from "@/services/goal.service";
+import { photoService } from "@/services/photo.service";
+import { FlatUserProfile, IUser } from "@/types/user";
 
 // Import components
-import { StatusBadge } from "./profile/edit-profile/StatusBadge";
-import { AccountInfoSection } from "./profile/edit-profile/AccountInfoSection";
-import { PhotosSection } from "./profile/edit-profile/PhotosSection";
-import { BasicInfoSection } from "./profile/edit-profile/BasicInfoSection";
-import { BioSection } from "./profile/edit-profile/BioSection";
-import { InterestsSection } from "./profile/edit-profile/InterestsSection";
-import { GoalsSection } from "./profile/edit-profile/GoalsSection";
-import { ProfessionalInfoSection } from "./profile/edit-profile/ProfessionalInfoSection";
-import { LocationSection } from "./profile/edit-profile/LocationSection";
-import { PreviewContent } from "./profile/edit-profile/PreviewContent";
+import StatusBadge from "./profile/edit-profile/StatusBadge";
+import AccountInfoSection from "./profile/edit-profile/AccountInfoSection";
+import PhotosSection from "./profile/edit-profile/PhotosSection";
+import BasicInfoSection from "./profile/edit-profile/BasicInfoSection";
+import BioSection from "./profile/edit-profile/BioSection";
+import InterestsSection from "./profile/edit-profile/InterestsSection";
+import GoalsSection from "./profile/edit-profile/GoalsSection";
+import ProfessionalInfoSection from "./profile/edit-profile/ProfessionalInfoSection";
+import LocationSection from "./profile/edit-profile/LocationSection";
+import PreviewContent from "./profile/edit-profile/PreviewContent";
+import {
+  getCurrentLocation,
+  requestLocationPermission,
+  getCurrentReadableLocation,
+} from "@/utils/geolocation";
 
 interface PhotoItem {
   id: number;
@@ -43,27 +51,14 @@ export default function EditProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
-
-  const [formData, setFormData] = useState({
-    first_name: "",
-    bio: "",
-    job_title: "",
-    company: "",
-    school: "",
-    location: "",
-    gender: "",
-    email: "",
-    phone_number: "",
-    dob: "",
-  });
-
+  const [user, setUser] = useState<FlatUserProfile | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const [goals, setGoals] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [address, setAddress] = useState<string | null>(null);
 
   const isWebPlatform = Platform.OS === "web";
 
@@ -87,49 +82,30 @@ export default function EditProfileScreen() {
     });
   };
 
-  const requestLocationPermissionIfNeeded = async (): Promise<boolean> => {
-    if (Platform.OS === "android") {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      );
-      return granted === PermissionsAndroid.RESULTS.GRANTED;
+  const handleUseMyLocation = async () => {
+    const granted = await requestLocationPermission();
+    if (!granted) {
+      alert("Please allow location access to use this feature.");
+      return;
     }
-    return true;
-  };
 
-  const useMyLocation = async () => {
     try {
-      if (Platform.OS === "web") {
-        if (!navigator.geolocation) {
-          notify("Error", "Geolocation is not supported in this browser");
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            setFormData((prev) => ({ ...prev, location: `${lng},${lat}` }));
-            notify("Success", "Location detected and filled");
-          },
-          (error) => notify("Error", error.message),
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
-      } else {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          notify("Error", "Location permission denied");
-          return;
-        }
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-          timeInterval: 10000,
-        });
-        const { latitude: lat, longitude: lng } = location.coords;
-        setFormData((prev) => ({ ...prev, location: `${lng},${lat}` }));
-        notify("Success", "Location detected and filled");
-      }
-    } catch (e: any) {
-      notify("Error", e?.message || "Failed to get location");
+      const coords = await getCurrentLocation();
+      const locationStr = `POINT(${coords.longitude.toFixed(4)} ${coords.latitude.toFixed(4)})`;
+      setUser((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          location: locationStr,
+          updated_at: new Date().toISOString(),
+        };
+      });
+      // => { latitude: 21.0285, longitude: 105.8542, address: "Hoàn Kiếm, Hà Nội, Việt Nam" }
+      const loc = await getCurrentReadableLocation();
+      // console.log("📍 My Location:", loc);
+      setAddress(loc.address as any);
+    } catch (err) {
+      console.error("Failed to get location:", err);
     }
   };
 
@@ -144,21 +120,13 @@ export default function EditProfileScreen() {
     try {
       setIsLoading(true);
       setError(null);
-      const profile = await getUserProfile();
-      setUserData(profile);
-
-      setFormData({
-        first_name: profile.first_name || "",
-        bio: profile.bio || "",
-        job_title: profile.job_title || "",
-        company: profile.company || "",
-        school: profile.school || "",
-        location: profile.location || "",
-        gender: profile.gender || "",
-        email: profile.email || "",
-        phone_number: profile.phone_number || "",
-        dob: profile.dob || "",
-      });
+      const userProfile = await userService.getUserById(Number(userId));
+      // console.log("Profile of user response:", userProfile.data);
+      if (userProfile.success && userProfile.data) {
+        setUser(userProfile.data as any);
+        const loc = await getCurrentReadableLocation();
+        setAddress(loc.address as any);
+      }
     } catch (err: any) {
       console.error("Error loading profile:", err);
       setError("Failed to load profile data. Please try again.");
@@ -172,23 +140,47 @@ export default function EditProfileScreen() {
       setIsSaving(true);
       setError(null);
 
-      const updateData: Partial<User> = {
-        first_name: formData.first_name,
-        bio: formData.bio,
-        job_title: formData.job_title,
-        dob: formData.dob,
-        company: formData.company,
-        school: formData.school,
-        location: formData.location,
-        gender: formData.gender,
-        email: formData.email,
-        phone_number: formData.phone_number,
+      const updateData: any = {
+        id: user?.id,
+        email: user?.email,
+        phone_number: user?.phone_number,
+        status: user?.status,
+        password: '12345678',
+        created_at: user?.created_at,
+        updated_at: user?.updated_at,
+
+        user_id: user?.user_id,
+        first_name: user?.first_name,
+        dob: user?.dob,
+        gender: user?.gender,
+        bio: user?.bio,
+        job_title: user?.job_title,
+        company: user?.company,
+        school: user?.school,
+        education: user?.education,
+        height_cm: user?.height_cm,
+        relationship_goals: user?.relationship_goals,
+        location: user?.location,
+        popularity_score: user?.popularity_score,
+        message_count: user?.message_count,
+        last_active_at: user?.last_active_at,
+        is_verified: user?.is_verified,
+        is_online: user?.is_online,
+        last_seen: user?.last_seen,
+        profile_created_at: user?.created_at,
+        profile_updated_at: user?.updated_at,
       };
 
-      const updatedProfile = await updateUserProfile(updateData);
-      setUserData(updatedProfile);
+      const updateUser = await userService.updateUser(
+        Number(user?.id),
+        updateData
+      );
+      // console.log("Update user response:", updateUser);
+      if (updateUser.success) {
+        notify("Success", "Profile updated successfully!");
+        setUser(updateUser.data as any);
+      }
 
-      notify("Success", "Profile updated successfully!");
       router.back();
     } catch (err: any) {
       console.error("Error saving profile:", err);
@@ -201,18 +193,17 @@ export default function EditProfileScreen() {
 
   const loadUserPhotos = async () => {
     try {
-      console.log("Loading photos for user:", userId);
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/photo/by-user/${userId}`
-      );
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        const photoItems: PhotoItem[] = result.data.map((photo: any) => {
-          const fullUrl = `${process.env.EXPO_PUBLIC_API_URL}${photo.url}`;
-          return { id: photo.id, url: fullUrl };
-        });
+      // console.log("Loading photos for user:", userId);
+      const res = await photoService.getPhotosByUserId(Number(userId));
+      // console.log("Photos response:", res);
+      if (res.success && Array.isArray(res.data)) {
+        const photoItems: PhotoItem[] = res.data.map((photo: any) => ({
+          id: photo.id,
+          url: `${process.env.EXPO_PUBLIC_API_URL}${photo.url}`,
+        }));
         setPhotos(photoItems);
+      } else {
+        notify("Error", "Failed to load photos from server.");
       }
     } catch (error) {
       console.error("Error loading photos:", error);
@@ -223,7 +214,11 @@ export default function EditProfileScreen() {
     try {
       const response = await interestService.getAllInterests();
       // console.log("Interests response:", response);
-      if (response.success && response.data && Array.isArray(response.data.data)) {
+      if (
+        response.success &&
+        response.data &&
+        Array.isArray(response.data.data)
+      ) {
         setInterests(response.data.data.map((item: any) => item.name));
       } else {
         notify("Error", "Failed to load interests from server.");
@@ -236,7 +231,11 @@ export default function EditProfileScreen() {
   const loadGoals = async () => {
     try {
       const response = await goalService.getAllGoals();
-      if (response.success && response.data && Array.isArray(response.data.data)) {
+      if (
+        response.success &&
+        response.data &&
+        Array.isArray(response.data.data)
+      ) {
         setGoals(response.data.data.map((item: any) => item.name));
       } else {
         notify("Error", "Failed to load goals from server.");
@@ -535,11 +534,16 @@ export default function EditProfileScreen() {
   };
 
   const updateFormField = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const updatePrivacy = (field: "hideAge" | "hideDistance", value: boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setUser((prev) => {
+      if (!prev) return null;
+      if (["first_name", "dob", "gender"].includes(field)) {
+        return {
+          ...prev,
+          [field]: value,
+        };
+      }
+      return { ...prev, [field]: value };
+    });
   };
 
   if (isLoading) {
@@ -566,7 +570,7 @@ export default function EditProfileScreen() {
     );
   }
 
-  if (error && !userData) {
+  if (error && !user) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
         <View
@@ -612,11 +616,11 @@ export default function EditProfileScreen() {
           title="Edit Profile"
           titleStyle={{ fontSize: 20, fontWeight: "bold" }}
         />
-        {userData && (
+        {user && (
           <View style={{ marginRight: 12 }}>
             <StatusBadge
-              status={userData.user_status || "unknown"}
-              verified={userData.is_verified || false}
+              status={user.status || ""}
+              verified={user.is_verified || false}
             />
           </View>
         )}
@@ -657,13 +661,13 @@ export default function EditProfileScreen() {
       >
         {activeTab === "edit" ? (
           <View>
-            {userData && (
+            {user && (
               <AccountInfoSection
-                userId={userData.user_id.toString()}
-                createdAt={userData.created_at || ""}
-                updatedAt={userData.updated_at || ""}
-                lastActiveAt={userData.last_active_at || ""}
-                popularityScore={userData.popularity_score || 0}
+                userId={user.user_id || 0}
+                createdAt={user.created_at || ""}
+                updatedAt={user.updated_at || ""}
+                lastActiveAt={user.last_active_at || ""}
+                popularityScore={user.popularity_score || 0}
               />
             )}
 
@@ -676,12 +680,18 @@ export default function EditProfileScreen() {
             />
 
             <BasicInfoSection
-              formData={formData}
+              formData={{
+                first_name: user?.first_name || "",
+                email: user?.email || "",
+                phone_number: user?.phone_number || "",
+                dob: user?.dob || "",
+                gender: user?.gender || "",
+              }}
               onUpdateField={updateFormField}
             />
 
             <BioSection
-              bio={formData.bio}
+              bio={user?.bio || ""}
               onUpdateBio={(bio) => updateFormField("bio", bio)}
             />
 
@@ -698,13 +708,18 @@ export default function EditProfileScreen() {
             />
 
             <ProfessionalInfoSection
-              formData={formData}
+              formData={{
+                job_title: user?.job_title || "",
+                company: user?.company || "",
+                school: user?.school || "",
+              }}
               onUpdateField={updateFormField}
             />
 
             <LocationSection
-              location={formData.location}
-              onUseMyLocation={useMyLocation}
+              location={user?.location || ""}
+              address={address || ""}
+              onUseMyLocation={handleUseMyLocation}
             />
 
             <Button
@@ -726,11 +741,11 @@ export default function EditProfileScreen() {
           </View>
         ) : (
           <PreviewContent
-            formData={formData}
+            formData={user}
             photos={photos}
             selectedInterests={selectedInterests}
             selectedGoals={selectedGoals}
-            userData={userData}
+            userData={user}
           />
         )}
       </ScrollView>

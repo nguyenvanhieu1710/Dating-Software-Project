@@ -6,6 +6,7 @@ import {
   UserQueryParams,
   CreateUserRequest,
   UpdateUserRequest,
+  IUserProfile,
 } from "@/types/user";
 import { IProfile } from "@/types/profile"; // Assuming this exists
 import {
@@ -67,11 +68,9 @@ class UserService {
   /**
    * Get recommended users for a user
    */
-  async getRecommendedUsers(
-    userId: number
-  ): Promise<ApiResponse<UserWithProfile[]>> {
-    return httpService.get<ApiResponse<UserWithProfile[]>>(
-      `${this.basePath}/recommend?user_id=${userId}`
+  async getRecommendedUsers(): Promise<ApiResponse<IUserProfile[]>> {
+    return httpService.get<ApiResponse<IUserProfile[]>>(
+      `${this.basePath}/recommend`
     );
   }
 

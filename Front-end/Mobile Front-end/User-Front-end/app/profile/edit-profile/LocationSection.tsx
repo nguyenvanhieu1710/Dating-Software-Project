@@ -4,11 +4,13 @@ import FormInput from "./FormInput";
 
 interface LocationSectionProps {
   location: string;
+  address: string;
   onUseMyLocation: () => void;
 }
 
 const LocationSection: React.FC<LocationSectionProps> = ({
   location,
+  address,
   onUseMyLocation,
 }) => {
   const theme = useTheme();
@@ -35,6 +37,12 @@ const LocationSection: React.FC<LocationSectionProps> = ({
           label="Current Location"
           value={location}
           placeholder="Your current location coordinates"
+          editable={false}
+        />
+        <FormInput
+          label="Address"
+          value={address}
+          placeholder="Your current address"
           editable={false}
         />
         <Button

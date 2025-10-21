@@ -13,7 +13,6 @@ import DiscoveryHeader from "../home/DiscoveryHeader";
 import SwipeCard, { SwipeCardHandle } from "../home/SwipeCard";
 import ActionButtons from "../home/ActionButtons";
 // import DistanceFilter from "../home/DistanceFilter";
-import { getDiscoveryUsers, User, getCurrentUserId } from "@/services/userApi";
 import { userService } from "@/services/user.service";
 import { swipeService } from "@/services/swipe.service";
 import { CreateSwipeRequest } from "@/types/swipe";
@@ -23,24 +22,27 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   requestLocationPermission,
   getCurrentLocation,
+  parseGeoJSONLocation,
   calculateDistance,
 } from "@/utils/geolocation";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import NotificationToast from "../notification/Notification";
 import { INotification } from "@/types/notification";
+import { io } from "socket.io-client";
+import { IUserProfile } from "@/types/user";
 
 export default function DiscoveryScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<IUserProfile[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<IUserProfile[]>([]);
   const [current, setCurrent] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<any | null>(null);
-  const [maxDistance, setMaxDistance] = useState(10);
+  const [maxDistance, setMaxDistance] = useState(100);
   const [photoOfUser, setPhotoOfUser] = useState<IPhoto[]>([]);
 
   const swipeRef = useRef<SwipeCardHandle | null>(null);
@@ -56,10 +58,21 @@ export default function DiscoveryScreen() {
         }
         const loc = await getCurrentLocation();
         setUserLocation(loc);
-        const data = await getDiscoveryUsers();
-        setUsers(data);
-        const nearby = filterUsersByDistance(data, loc, maxDistance);
-        setFilteredUsers(nearby);
+        // const currentUser = await userService.getCurrentUser();
+        const users = await userService.getRecommendedUsers();
+        // console.log("Recommended users: ", users);
+        if (users.success && Array.isArray(users.data)) {
+          setUsers(users.data);
+          const nearby = filterUsersByDistance(
+            users.data as any,
+            loc,
+            maxDistance
+          );
+          // console.log("nearby users: ", nearby);
+          setFilteredUsers(nearby);
+          setCurrent(0);
+          setCurrentPhotoIndex(0);
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to load nearby users. Please try again.");
@@ -79,22 +92,27 @@ export default function DiscoveryScreen() {
   }, [maxDistance, users, userLocation]);
 
   const filterUsersByDistance = (
-    users: User[],
-    userLocation: any,
+    users: IUserProfile[],
+    userLocation: { latitude: number; longitude: number },
     maxDistanceKm: number = maxDistance
   ) => {
     return users
       .map((u) => {
-        if (u.location && u.location.latitude && u.location.longitude) {
-          const d = calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            u.location.latitude,
-            u.location.longitude
-          );
-          return { ...u, distance: d ?? 0 };
+        if (u.location) {
+          const coords = parseGeoJSONLocation(u.location);
+          if (coords) {
+            const d = calculateDistance(
+              userLocation.latitude,
+              userLocation.longitude,
+              coords.latitude,
+              coords.longitude
+            );
+            // console.log(`User ${u.first_name} (ID: ${u.id}) - Distance: ${d} km`);
+            return { ...u, distance: d };
+          }
         }
-        return { ...u, distance: 0 };
+        // console.log(`User ${u.first_name} (ID: ${u.id}) - Invalid location`);
+        return { ...u, distance: Infinity }; // Users with invalid location are filtered out
       })
       .filter((u) => u.distance != null && u.distance <= maxDistanceKm)
       .sort((a, b) => (a.distance || 0) - (b.distance || 0));
@@ -107,8 +125,7 @@ export default function DiscoveryScreen() {
       setCurrentPhotoIndex((prev) => prev - 1);
     else if (
       dir === "right" &&
-      user.photos &&
-      currentPhotoIndex < user.photos.length - 1
+      currentPhotoIndex < photoOfUser.length - 1
     )
       setCurrentPhotoIndex((prev) => prev + 1);
   };
@@ -132,11 +149,15 @@ export default function DiscoveryScreen() {
 
   const performSwipeApi = async (
     direction: "left" | "right" | "superlike",
-    swipedUser?: User
+    swipedUser?: IUserProfile
   ) => {
     if (!swipedUser) return;
     try {
-      const currentUserId = await getCurrentUserId();
+      const currentUser = await userService.getCurrentUser();
+      if (!currentUser.data || !currentUser.data.id) {
+        throw new Error("User not found");
+      }
+      const currentUserId = currentUser.data.id;
       const token = await AsyncStorage.getItem("auth_token");
       const action =
         direction === "left"
@@ -189,8 +210,13 @@ export default function DiscoveryScreen() {
         Number(currentUser.data.id),
         Number(user.id)
       );
-      if (checkSwiped.success) {
-        alert("You have already swiped this user");
+      if (checkSwiped.success && checkSwiped.data[0].action === "like") {
+        alert("You liked this user");
+        swipeRef.current?.swipe("right");
+        return;
+      }
+      if (checkSwiped.success && checkSwiped.data[0].action === "pass") {
+        alert("You passed this user");
         swipeRef.current?.swipe("left");
         return;
       }
@@ -216,23 +242,74 @@ export default function DiscoveryScreen() {
       if (!currentUser.data || !currentUser.data.id) {
         throw new Error("User not found");
       }
+      const userdetail = await userService.getUserById(user.id);
+      // console.log("userdetail: ", userdetail);
       const checkSwiped = await swipeService.checkSwiped(
         Number(currentUser.data.id),
         Number(user.id)
       );
-      if (checkSwiped.success) {
-        alert("You have already swiped this user");
-        swipeRef.current?.swipe("right");
-        return;
+      if (
+        checkSwiped.success &&
+        Array.isArray(checkSwiped.data) &&
+        checkSwiped.data.length > 0
+      ) {
+        const action = checkSwiped.data[0].action;
+
+        if (action === "like") {
+          alert("You liked this user");
+          swipeRef.current?.swipe("right");
+          return;
+        }
+
+        if (action === "pass") {
+          alert("You passed this user");
+          swipeRef.current?.swipe("left");
+          return;
+        }
       }
+      const socket = io(process.env.EXPO_PUBLIC_SOCKET_URL, {
+        query: { userId: currentUser.data.id.toString() },
+        transports: ["websocket"],
+      });
+
+      socket.on("connect", () => {
+        console.log("✅ Socket connected for sending like notification");
+
+        const firstName = userdetail.data?.profile?.first_name || "Someone";
+
+        const notificationData = {
+          swiper_user_id: Number(currentUser.data?.id),
+          swiped_user_id: Number(user.id),
+          title: "New Like!",
+          body: `${firstName} liked you! Check out their profile.`,
+          data: {
+            type: "like",
+            swiper_user_id: currentUser.data?.id.toString(),
+          },
+          sent_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        };
+        // console.log("notificationData: ", notificationData);
+
+        socket.emit("send-like-notification", notificationData);
+        console.log("📤 Sent like notification:", notificationData);
+      });
+
+      socket.on("connect_error", (err) => {
+        console.error(
+          "❌ Socket connection error for like notification:",
+          err.message
+        );
+      });
       const swipeData: CreateSwipeRequest = {
         swiper_user_id: Number(currentUser.data.id),
         swiped_user_id: Number(user.id),
         action: "like",
       };
       const response = await swipeService.performSwipe(swipeData);
-      // console.log(response);
+      // console.log("response of like:", response);
       if (response.success) {
+        alert("Like sent successfully");
         router.replace("/");
       }
     } catch (error) {
@@ -249,8 +326,6 @@ export default function DiscoveryScreen() {
   };
 
   const handleNotificationPress = (notification: INotification) => {
-    // Xử lý khi user click vào notification
-    // Ví dụ: navigate đến trang notification detail
     Alert.alert(notification.title, notification.body, [{ text: "OK" }]);
   };
 

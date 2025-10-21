@@ -7,6 +7,8 @@ import { userService } from "@/services/user.service";
 import { swipeService } from "@/services/swipe.service";
 import { SwipedUser } from "@/types/swipe";
 import { useTheme } from "react-native-paper";
+import NotificationToast from "../notification/Notification";
+import { INotification } from "@/types/notification";
 
 export default function LikesScreen() {
   const theme = useTheme();
@@ -42,8 +44,13 @@ export default function LikesScreen() {
     return age;
   };
 
+  function handleNotificationPress(notification: INotification): void {
+    console.log("Notification pressed:", notification);
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF9FB" }}>
+      <NotificationToast onPress={handleNotificationPress} />
       <LikesHeader title="Likes" />
       <Text
         variant="headlineMedium"

@@ -44,11 +44,11 @@ export default function ChatHeader({
         subtitleStyle={{ fontSize: 13 }}
       />
 
-      {/* Call Button */}
-      <Appbar.Action
+      {/* Call Voice Button */}
+      {/* <Appbar.Action
         icon={() => <Ionicons name="call" size={22} color="#8B5CF6" />}        
         onPress={onCallPress}
-      />
+      /> */}
 
       {/* Video Call Button */}
       <Appbar.Action

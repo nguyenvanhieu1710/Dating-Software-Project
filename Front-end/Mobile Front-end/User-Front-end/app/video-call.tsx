@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet, Image, Animated, Easing } from "react-native";
 import * as WebBrowser from "expo-web-browser";
-import { WebView } from "react-native-webview";
+import { useLocalSearchParams } from "expo-router";
 
 export default function CallScreen() {
+  const { roomID, userID, userName, matchId, otherUserId } = useLocalSearchParams();
   const domain = "hieu-videoconf-002.app.100ms.live";
-  const roomID = "irt-zufj-wgc";
-  const meetingUrl = `https://${domain}/meeting/${roomID}`;
+  const roomIdOf100ms = "irt-zufj-wgc";
+  const meetingUrl = `https://${domain}/meeting/${roomIdOf100ms}`;
 
   const spinValue = new Animated.Value(0);
   useEffect(() => {
@@ -56,19 +57,6 @@ export default function CallScreen() {
       <Text style={styles.subtitle}>Please wait a few seconds</Text>
 
       <ActivityIndicator size="large" color="#8b5cf6" style={styles.spinner} />
-
-      {/* <WebView
-        style={{ display: "none" }}
-        source={{ uri: meetingUrl }}
-        originWhitelist={["*"]}
-        javaScriptEnabled
-        domStorageEnabled
-        mediaPlaybackRequiresUserAction={false}
-        allowsInlineMediaPlayback
-        startInLoadingState
-        allowsFullscreenVideo
-        allowsProtectedMedia
-      /> */}
     </View>
   );
 }

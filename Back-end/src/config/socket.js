@@ -70,6 +70,7 @@ function initSocket(server) {
       }
     });
 
+    // Typing events
     socket.on("typing", async (data) => {
       try {
         const { match_id, is_typing } = data;
@@ -95,29 +96,64 @@ function initSocket(server) {
     // Notification events
     socket.on("send-global-notification", async (notificationData) => {
       try {
-        // const { user_id, title, body, data, sent_at, read_at, create_at } =
-        //   notificationData;
-
-        // if (!title || !body) {
-        //   socket.emit("error", { message: "title and body are required" });
-        //   return;
-        // }
-
-        // const notification = await notificationModel.create({
-        //   user_id,
-        //   title,
-        //   body,
-        //   data,
-        //   sent_at,
-        //   read_at,
-        //   create_at,
-        // });
-
         io.emit("receive-notification", notificationData);
         socket.emit("notification-sent", notificationData);
       } catch (err) {
         console.error("Error sending notification:", err);
         socket.emit("error", { message: "Failed to send notification" });
+      }
+    });
+
+    // Like notification events
+    socket.on("send-like-notification", async (notificationData) => {
+      try {
+        const {
+          swiper_user_id,
+          swiped_user_id,
+          title,
+          body,
+          data,
+          sent_at,
+          created_at,
+        } = notificationData;
+
+        if (!swiper_user_id || !swiped_user_id || !title || !body) {
+          socket.emit("error", {
+            message: "Required fields missing for like notification",
+          });
+          return;
+        }
+
+        if (socket.userId !== swiper_user_id) {
+          socket.emit("error", {
+            message: "Unauthorized to send notification",
+          });
+          return;
+        }
+
+        const notification = await notificationModel.create({
+          user_id: swiped_user_id,
+          title,
+          body,
+          data: data || null,
+          sent_at: sent_at || new Date().toISOString(),
+          read_at: null,
+          created_at: created_at || new Date().toISOString(),
+        });
+
+        io.to(`user_${swiped_user_id}`).emit(
+          "receive-notification",
+          notification
+        );
+        console.log(
+          `📢 Sent like notification to user_${swiped_user_id}:`,
+          notification
+        );
+
+        socket.emit("notification-sent", notification);
+      } catch (err) {
+        console.error("Error sending like notification:", err);
+        socket.emit("error", { message: "Failed to send like notification" });
       }
     });
   });
