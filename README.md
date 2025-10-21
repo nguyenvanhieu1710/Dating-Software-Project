@@ -1,182 +1,357 @@
-# Dating Software Project - Phần mềm Hẹn hò Trực tuyến
+# Dating Software Project
 
-**Một hệ sinh thái ứng dụng hẹn hò hiện đại, đa nền tảng, lấy cảm hứng từ Tinder, phục vụ cả người dùng và quản trị viên.**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green)](https://nodejs.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.72-blue)](https://reactnative.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
 
----
+**A modern, cross-platform dating application ecosystem inspired by Tinder, serving both end-users and administrators with a complete set of features for online dating and user management.**
 
-## 🏗️ Kiến trúc tổng thể
+## 🌟 Key Features
 
-- **Back-end**: Node.js + Express, RESTful API, quản lý xác thực, người dùng, hồ sơ, vuốt, tương hợp, chat, báo cáo, quản trị, thanh toán, v.v.
-- **Mobile Front-end**: React Native + Expo, gồm 2 app:
-  - **User App**: Ứng dụng hẹn hò cho người dùng cuối (iOS/Android).
-  - **Admin App**: Ứng dụng quản trị dành cho admin (iOS/Android).
-- **Website Front-end**: Next.js/React, gồm 2 app:
-  - **User Web**: Giao diện web cho người dùng.
-  - **Admin Web**: Giao diện web quản trị.
-- **Database**: PostgreSQL + PostGIS (hỗ trợ truy vấn vị trí, tối ưu cho app hẹn hò).
-- **Diagram**: Sơ đồ ERD, kiến trúc, luồng dữ liệu (file .vpp).
-
----
-
-## 🎯 Mục tiêu & Đặc điểm nổi bật
-
-- Kết nối, khám phá, trò chuyện, tìm kiếm bạn mới, trải nghiệm vuốt (swipe) hiện đại.
-- Quản trị viên kiểm duyệt, thống kê, xử lý báo cáo, quản lý người dùng.
-- Hỗ trợ đa nền tảng: mobile (iOS/Android), web.
-- Bảo mật, xác thực đa phương thức, phân quyền rõ ràng.
-- Tối ưu trải nghiệm người dùng, giao diện đẹp, màu sắc nhận diện riêng (tím/violet).
+- **User Authentication**: Secure login with JWT, OTP verification, and social login
+- **Profile Management**: Complete user profiles with photos, bio, and preferences
+- **Matching System**: Advanced swiping interface with smart matching algorithm
+- **Real-time Chat**: Instant messaging between matched users
+- **Location-based Discovery**: Find matches nearby using geolocation
+- **Admin Dashboard**: Comprehensive admin panel for user and content management
+- **Subscription System**: Multiple premium membership tiers with exclusive features
+- **Reporting System**: User reporting and content moderation tools
+- **Multi-platform Support**: Native mobile apps (iOS/Android) and responsive web interface
 
 ---
 
-## 🗂️ Cấu trúc thư mục chính
+## 🏗️ System Architecture
+
+### Backend
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **API**: RESTful API with JWT authentication
+- **Database**: PostgreSQL 15+ with PostGIS extension
+- **File Storage**: Local file system with Multer middleware
+- **API Documentation**: Postman Collection included
+
+### Mobile Applications (React Native)
+- **User App**: Dating application for end-users (iOS/Android)
+  - Built with React Native and Expo
+  - Expo Router for navigation
+  - Redux for state management
+  - Real-time updates with WebSockets
+
+- **Admin App**: Management application for administrators
+  - User management
+  - Content moderation
+  - Analytics dashboard
+  - Report handling
+
+### Web Applications (Next.js)
+- **User Web Portal**: Responsive web interface for users
+  - Server-side rendering with Next.js
+  - Responsive design with Tailwind CSS
+  - PWA support
+
+- **Admin Dashboard**: Comprehensive admin interface
+  - User management
+  - Content moderation
+  - Analytics and reporting
+  - System configuration
+
+### Database
+- **PostgreSQL 15+** with PostGIS extension for geospatial queries
+- **Database Schema**: Well-normalized design with proper indexes
+- **Migrations**: SQL-based migration system
+- **Backup**: Automated backup procedures
+
+---
+
+## 🚀 Features
+
+### User Features
+- **Profile Creation**: Detailed user profiles with photos and preferences
+- **Smart Matching**: Advanced algorithm for suggesting compatible matches
+- **Swipe Interface**: Intuitive card-based interface for discovering potential matches
+- **Real-time Messaging**: Instant chat with matched users
+- **Location-based Discovery**: Find matches based on proximity
+- **Advanced Filters**: Filter matches by age, distance, interests, and more
+- **Likes & Super Likes**: Express interest in potential matches
+- **Moments**: Share updates and photos with your matches
+- **Privacy Controls**: Manage who can see your profile and contact you
+- **Report & Block**: Report inappropriate behavior and block users
+
+### Admin Features
+- **User Management**: View, edit, and manage user accounts
+- **Content Moderation**: Review and moderate user-generated content
+- **Analytics Dashboard**: Monitor platform usage and growth metrics
+- **Report Management**: Handle user reports and take appropriate actions
+- **System Configuration**: Configure platform settings and features
+- **Subscription Management**: Manage premium subscriptions and payments
+
+### Technical Highlights
+- **Cross-platform**: Native mobile apps and responsive web interface
+- **Scalable Architecture**: Designed to handle growing user base
+- **Secure Authentication**: JWT-based authentication with refresh tokens
+- **Real-time Updates**: WebSockets for instant messaging and notifications
+- **Performance Optimized**: Efficient database queries and caching
+- **CI/CD Ready**: Set up for continuous integration and deployment
+
+---
+
+## 📁 Project Structure
 
 ```
 .
-├── Back-end/                # Node.js API, Express, models, controllers, middlewares
-│   └── src/
-│       ├── app/
-│       │   ├── controllers/
-│       │   ├── models/
-│       │   └── middlewares/
-│       ├── config/
-│       ├── routes/
-│       └── index.js
+├── Back-end/                    # Backend API Server
+│   ├── src/                    
+│   │   ├── app/                # Application core
+│   │   │   ├── controllers/    # Request handlers
+│   │   │   ├── models/         # Database models
+│   │   │   ├── middlewares/    # Express middlewares
+│   │   │   └── services/       # Business logic
+│   │   ├── config/             # Configuration files
+│   │   ├── routes/             # API route definitions
+│   │   ├── uploads/            # File uploads directory
+│   │   └── index.js            # Application entry point
+│   ├── .env                    # Environment variables
+│   └── package.json            # Dependencies and scripts
+│
 ├── Front-end/
-│   ├── Mobile Front-end/
-│   │   ├── User-Front-end/      # App mobile cho người dùng
-│   │   └── Admin-Front-end/     # App mobile cho admin
+│   ├── Mobile Front-end/       
+│   │   ├── User-Front-end/     # Mobile app for end-users
+│   │   └── Admin-Front-end/    # Mobile admin app
 │   └── Website Front-end/
-│       ├── User Front-end/      # Web user
-│       └── Admin Front-end/     # Web admin
-├── Diagram/
-│   └── DatingSoftware.vpp       # Sơ đồ ERD, kiến trúc hệ thống
-├── DatingSoftware.sql           # Toàn bộ schema database, trigger, index
-└── README.md                    # (Bạn đang đọc file này)
+│       ├── User Front-end/     # Web portal for users
+│       └── Admin Front-end/    # Web admin dashboard
+│
+├── Diagram/                    # System diagrams and documentation
+│   ├── ERD.vpp                # Entity Relationship Diagram
+│   ├── Architecture.vpp       # System architecture
+│   └── Workflow.vpp           # User workflow diagrams
+│
+├── Documentation/              # Project documentation
+│   ├── API/                   # API documentation
+│   ├── Database/              # Database schema and migrations
+│   └── Deployment/            # Deployment guides
+│
+├── DatingSoftware.sql          # Database schema and seed data
+├── .gitignore                 # Git ignore file
+└── README.md                  # Project documentation (this file)
 ```
 
 ---
 
-## ⚙️ Công nghệ sử dụng
+## 🛠️ Technology Stack
 
-- **Back-end**: Node.js, Express, PostgreSQL, PostGIS, JWT, Multer, Bcrypt, RESTful API.
-- **Mobile/Web Front-end**: React Native (Expo), React, Next.js, TypeScript, Expo Router, React Navigation, Tailwind/TW, Expo Vector Icons.
-- **Database**: PostgreSQL, PostGIS (truy vấn vị trí), trigger, index tối ưu.
-- **Khác**: Docker (nếu cần), ESLint, Prettier, CI/CD (tùy chọn).
+### Backend
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **API**: RESTful API
+- **Authentication**: JWT, OAuth 2.0
+- **Database**: PostgreSQL 15+ with PostGIS
+- **File Upload**: Multer
+- **Validation**: Joi
+- **Testing**: Jest, Supertest
+- **Documentation**: Postman Collection
 
----
+### Frontend (Mobile & Web)
+- **Mobile Framework**: React Native with Expo
+- **Web Framework**: Next.js 13+
+- **State Management**: Redux Toolkit
+- **Styling**: Tailwind CSS, Styled Components
+- **Navigation**: React Navigation (Mobile), Next.js Router (Web)
+- **UI Components**: React Native Paper, React Native Elements
+- **Forms**: Formik with Yup validation
+- **Real-time**: Socket.IO
+- **Maps**: React Native Maps, Mapbox
 
-## 🧩 Các module & chức năng chính
-
-### 1. **Back-end API**
-- Đăng ký, đăng nhập, xác thực OTP, quên mật khẩu.
-- Quản lý hồ sơ, ảnh, sở thích, cài đặt tìm kiếm.
-- Vuốt (swipe), tương hợp (match), chat, báo cáo, block.
-- Quản lý gói trả phí (Plus, Gold, Platinum), thanh toán.
-- Quản trị viên: kiểm duyệt, thống kê, xử lý báo cáo, quản lý người dùng.
-- API chuẩn RESTful, trả về JSON, bảo mật JWT.
-
-### 2. **Mobile User App**
-- Onboarding, đăng ký/đăng nhập đa phương thức.
-- Tạo hồ sơ nhiều bước, xin quyền vị trí/thông báo.
-- Swipe Deck, Likes You, Messages, Profile, Chat, Match, Paywall, Settings.
-- Giao diện hiện đại, màu tím chủ đạo, UX tối ưu mobile.
-
-### 3. **Mobile Admin App**
-- Đăng nhập 2FA, dashboard thống kê, kiểm duyệt báo cáo, quản lý người dùng.
-- Giao diện tab bar, card-based, thao tác nhanh, bảo mật cao.
-
-### 4. **Website User/Admin**
-- Đầy đủ tính năng như mobile, tối ưu cho desktop.
-- Quản trị viên có dashboard, kiểm duyệt, thống kê, quản lý tài khoản.
-
-### 5. **Database & Diagram**
-- Thiết kế chuẩn hóa, tối ưu cho truy vấn vị trí, nhiều bảng liên kết (users, profiles, photos, swipes, matches, messages, subscriptions, ...).
-- Sơ đồ ERD, kiến trúc hệ thống, backup đầy đủ.
+### Development Tools
+- **Version Control**: Git
+- **Package Manager**: npm / Yarn
+- **Code Formatting**: Prettier
+- **Linting**: ESLint
+- **Containerization**: Docker
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Sentry
+- **Analytics**: Google Analytics, Firebase Analytics
 
 ---
 
-## 🔗 Luồng chức năng & điều hướng
+## 🏗️ System Components
 
-- **User**: Onboarding → Đăng nhập/Đăng ký → Tạo hồ sơ → Xin quyền → (Discovery, Likes, Messages, Profile, Chat, Match, Paywall, Settings)
-- **Admin**: Đăng nhập 2FA → Dashboard → Moderation → Users → Chi tiết báo cáo/người dùng
-- **Web**: Tương tự mobile, tối ưu cho desktop/tablet.
+### 1. Authentication & Authorization
+- User registration and login (email/password, social login)
+- Email verification (OTP)
+- Password reset flow
+- Role-based access control (User, Admin, Moderator)
+- Session management with JWT
+- Two-factor authentication (2FA) for admin accounts
+
+### 2. User Profile Management
+- Profile creation and editing
+- Photo upload and management
+- Personal information and preferences
+- Discovery settings (distance, age range, etc.)
+- Verification system (email, phone, photo verification)
+
+### 3. Matching System
+- Swipe-based matching interface
+- Smart algorithm for match suggestions
+- Like/Pass/Super Like functionality
+- Mutual matching notifications
+- Match quality scoring
+
+### 4. Messaging System
+- Real-time chat between matched users
+- Read receipts and typing indicators
+- Media sharing (images, locations)
+- Message search and filtering
+- Message requests for non-matched users (premium feature)
+
+### 5. Discovery & Search
+- Location-based user discovery
+- Advanced search filters
+- Daily recommended profiles
+- Incognito mode (premium feature)
+- Boost profile visibility (premium feature)
+
+### 6. Admin Dashboard
+- User management (view, edit, ban users)
+- Content moderation
+- Report handling
+- Analytics and metrics
+- System configuration
+- Payment and subscription management
+
+### 7. Subscription & Payments
+- Multiple subscription tiers
+- In-app purchases
+- Payment gateway integration
+- Subscription management
+- Promo codes and discounts
+
+### 8. Security & Privacy
+- End-to-end encryption for messages
+- Photo verification
+- Block and report users
+- Data export and account deletion
+- Privacy settings and controls
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or Yarn
+- PostgreSQL 15+
+- Redis (for caching and real-time features)
+- Expo CLI (for mobile development)
+
+### Installation
+
+#### Backend Setup
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   cd Back-end
+   npm install
+   ```
+3. Set up environment variables (copy .env.example to .env)
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+#### Mobile App Setup
+1. Navigate to the mobile app directory:
+   ```bash
+   cd Front-end/Mobile\ Front-end/User-Front-end
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Expo development server:
+   ```bash
+   expo start
+   ```
+
+#### Web App Setup
+1. Navigate to the web app directory:
+   ```bash
+   cd Front-end/Website\ Front-end/User\ Front-end
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 📚 Documentation
+
+- [API Documentation](Documentation/API/README.md)
+- [Database Schema](Documentation/Database/SCHEMA.md)
+- [Deployment Guide](Documentation/Deployment/README.md)
+- [Mobile App Development](Documentation/Mobile/README.md)
+- [Web App Development](Documentation/Web/README.md)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📧 Contact
+
+For any questions or inquiries, please contact [contact.hieunguyen.work@gmail.com] or open an issue in the repository.
+
+## 🙏 Acknowledgments
+
+- [React Native](https://reactnative.dev/)
+- [Node.js](https://nodejs.org/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Expo](https://expo.io/)
+- [Next.js](https://nextjs.org/)
 
 ---
 
 ## 🗄️ Database (PostgreSQL + PostGIS)
 
-- **users**: Thông tin xác thực, trạng thái.
-- **profiles**: Hồ sơ chi tiết, vị trí, bio, nghề nghiệp, trường học.
-- **photos**: Ảnh đại diện, thứ tự.
-- **swipes**: Lịch sử vuốt (like, pass, superlike).
-- **matches**: Các cặp đôi đã tương hợp.
-- **messages**: Tin nhắn giữa các cặp đôi.
-- **subscriptions**: Gói trả phí, trạng thái.
-- **settings**: Cài đặt tìm kiếm, hiển thị.
-- **interests**: Sở thích, liên kết profile.
-- **Bảng báo cáo, block, ...** (nếu có).
+- **users**: Authentication and status information
+- **profiles**: Detailed profiles, location, bio, occupation, education
+- **photos**: Profile pictures and their order
+- **swipes**: Swipe history (like, pass, superlike)
+- **matches**: Matched user pairs
+- **messages**: Chat messages between matched users
+- **subscriptions**: Subscription plans and status
+- **settings**: Search and display preferences
+- **interests**: User interests, linked to profiles
+- **Additional tables**: Reports, blocks, and other supporting tables
 
 ---
 
-## 🛠️ Hướng dẫn cài đặt & chạy
+## 📊 Diagrams & Documentation
 
-### 1. **Back-end**
-```bash
-cd Back-end
-npm install
-npm start
-# Cấu hình .env theo env.example
-```
-
-### 2. **Mobile Front-end (User/Admin)**
-```bash
-cd Front-end/Mobile Front-end/User-Front-end
-npm install
-npm start
-# Tương tự cho Admin-Front-end
-```
-
-### 3. **Website Front-end (User/Admin)**
-```bash
-cd Front-end/Website Front-end/User Front-end
-npm install
-npm run dev
-# Tương tự cho Admin Front-end
-```
-
-### 4. **Database**
-- Import file `DatingSoftware.sql` vào PostgreSQL.
-- Cài extension PostGIS nếu cần.
+- **Diagram/DatingSoftware.vpp**: ERD, system architecture, data flow diagrams
+- **10122169_NguyenVanHieu_DatingSoftwareReport.doc**: Detailed report (objectives, analysis, design, implementation, demo)
 
 ---
 
-## 📊 Sơ đồ & tài liệu
+## 📦 Useful Scripts
 
-- **Diagram/DatingSoftware.vpp**: Sơ đồ ERD, kiến trúc hệ thống, luồng dữ liệu.
-- **10122169_NguyenVanHieu_DatingSoftwareReport.doc**: Báo cáo chi tiết (mục tiêu, phân tích, thiết kế, triển khai, demo).
-
----
-
-## 📦 Scripts hữu ích
-
-- `npm run lint` — Kiểm tra code style
-- `npm run reset-project` — Reset lại thư mục app (mobile)
-- `npm run dev` — Chạy web front-end
+- `npm run lint` — Check code style
+- `npm run reset-project` — Reset app directory (mobile)
+- `npm run dev` — Start web front-end
 
 ---
 
-## 📄 License & Đóng góp
+## 👤 Author
 
-- Dự án phục vụ học tập, nghiên cứu, demo UI/UX, có thể mở rộng cho sản phẩm thực tế.
-- Bạn có thể fork, đóng góp, hoặc sử dụng lại cho các dự án cá nhân.
+- **Nguyen Van Hieu**
+- Email: contact.hieunguyen.work@gmail.com
+- Role: Fullstack Developer - Design, development, and deployment of the entire online dating software system
+- Detailed Report: `10122169_NguyenVanHieu_DatingSoftwareReport.doc`
 
----
-
-## 👤 Tác giả
-
-- **Nguyễn Văn Hiếu**
-- Email: nguyenvanhieu171004@gmail.com
-- Vai trò: Thiết kế, phát triển, triển khai toàn bộ hệ thống phần mềm hẹn hò trực tuyến (Fullstack Developer)
-- Báo cáo chi tiết: `10122169_NguyenVanHieu_DatingSoftwareReport.doc`
-
-**Dating Software Project - Kết nối, Khám phá, Trò chuyện, An toàn & Hiện đại!**
+**Dating Software Project - Connect, Discover, Chat, Safe & Modern!**
